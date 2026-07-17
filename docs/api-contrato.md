@@ -9,6 +9,28 @@ Contrato acordado entre frontend y backend. Convenciones ya establecidas en el E
 - Nombres de campos en `snake_case` (consistente con `last_name` del E1).
 - Fechas: `YYYY-MM-DD` (fechas de estancia) e ISO 8601 con hora para timestamps.
 
+## Cómo trabaja el frontend (contexto para el backend)
+
+Comportamientos ya implementados en el FE que la API debe tener en cuenta:
+
+- **Token:** el JWT se guarda en `localStorage` y se adjunta automáticamente como
+  `Authorization: Bearer <token>` en **todas** las peticiones (interceptor axios).
+  No se usan cookies ni refresh tokens: un solo token de vida completa de sesión.
+- **401:** ante cualquier respuesta `401`, el FE borra el token y considera la
+  sesión cerrada. Por eso: usar `401` solo para token inválido/expirado;
+  para "no tienes permiso sobre este recurso" usar `403` (no cierra la sesión).
+- **Errores:** el FE muestra al usuario el campo `message` del cuerpo de error.
+  Debe venir en español y ser apto para mostrarse tal cual
+  (ej. `{ "message": "La habitación ya no está disponible en esas fechas." }`).
+- **Timeout:** el FE corta peticiones a los **15 segundos**; los endpoints deben
+  responder dentro de ese margen (relevante para disponibilidad y dashboard).
+- **CORS:** en desarrollo el FE corre en Vite (`http://localhost:5173`);
+  la API debe permitir ese origen con el header `Authorization`.
+- **Sesión al cargar:** al abrir la app, si hay token el FE llama `GET /auth/me`
+  para restaurar la sesión; ese endpoint debe ser rápido y devolver el `User` completo.
+- **Roles:** el FE oculta rutas/vistas según `user.role`, pero eso es solo UX —
+  la **autorización real es responsabilidad de la API** en cada endpoint (RNF-001).
+
 ---
 
 ## Entregable 1 — Existente ✅
