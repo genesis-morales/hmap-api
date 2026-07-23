@@ -1,13 +1,13 @@
 package com.hmap.backend.notification;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Envío de correos transaccionales del sistema.
@@ -81,6 +81,51 @@ public class MailService {
                 """.formatted(guestName, code, roomName,
                 DATE_FORMAT.format(checkIn), DATE_FORMAT.format(checkOut),
                 guests, nights, total));
+
+        mailSender.send(message);
+    }
+
+    /**
+     * Envía los detalles de una reserva creada por recepción (HU-037). Si la
+     * cuenta del huésped se acaba de crear, incluye la contraseña temporal para
+     * que pueda acceder al portal; si ya existía, {@code temporaryPassword} es null.
+     */
+    public void sendManualReservationEmail(String to, String guestName, String code,
+                                           String roomName, LocalDate checkIn, LocalDate checkOut,
+                                           int guests, long nights, BigDecimal total,
+                                           String temporaryPassword) {
+        var credentialsBlock = temporaryPassword == null ? "" : """
+
+                Te creamos una cuenta para que gestiones tu reserva en línea:
+                Usuario: %s
+                Contraseña temporal: %s
+                Te recomendamos cambiarla al iniciar sesión.
+                """.formatted(to, temporaryPassword);
+
+        var message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("Reserva %s - Hotel Manuel Antonio Park".formatted(code));
+        message.setText("""
+                Hola %s,
+
+                Hemos registrado una reserva a tu nombre. Estos son los detalles:
+
+                Código de reserva: %s
+                Habitación: %s
+                Entrada: %s
+                Salida: %s
+                Huéspedes: %d
+                Noches: %d
+                Total: $%s USD
+                %s
+                Te esperamos en el Hotel Manuel Antonio Park.
+
+                Saludos,
+                Hotel Manuel Antonio Park
+                """.formatted(guestName, code, roomName,
+                DATE_FORMAT.format(checkIn), DATE_FORMAT.format(checkOut),
+                guests, nights, total, credentialsBlock));
 
         mailSender.send(message);
     }
