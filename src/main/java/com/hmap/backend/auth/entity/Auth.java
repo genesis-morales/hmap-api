@@ -50,6 +50,9 @@ public class Auth implements UserDetails {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @Column(length = 30)
+    private String phone;
+
     @Column(nullable = false)
     private String password;
 
