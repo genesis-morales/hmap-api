@@ -24,6 +24,8 @@ Convención: ver contrato de endpoints en [api-contrato.md](./api-contrato.md).
 
 El corazón del sistema: el cliente puede buscar disponibilidad, reservar y gestionar sus reservas. Incluye la base de datos de habitaciones (necesaria para calcular disponibilidad) aunque su CRUD administrativo llega en el Entregable 3.
 
+> **Estado:** API ✅ completada (ver [E2-RESERVAS.md](./E2-RESERVAS.md)) · FE pendiente.
+
 | Área | Alcance |
 |---|---|
 | **FE** | Layout del panel cliente + ruta protegida por rol. Inicio del portal (HU-007). Perfil y cambio de contraseña. Buscador de disponibilidad **compartido** entre portal público (RF-006) y panel cliente (HU-008), con persistencia de la selección previa al pasar por login (RNF-006). Flujo de confirmación de reserva. Listado, detalle, edición y cancelación de reservas propias. |
@@ -77,7 +79,7 @@ Gestión de usuarios internos, control de acceso por roles consolidado y cierre 
 | Entregable | HU | RF | Estado |
 |---|---|---|---|
 | E1 — Público + Auth | 001–006, 038 | 001–005 | ✅ Completado |
-| E2 — Portal Cliente + Reservas | 007–015, 035, 036 | 006–010, 016* | Pendiente |
+| E2 — Portal Cliente + Reservas | 007–015, 035, 036 | 006–010, 016* | API ✅ / FE pendiente |
 | E3 — Panel Recepcionista | 016–029, 037 | 011–014, 016* | Pendiente |
 | E4 — Panel Admin + Cierre | 030–034 | 015 | Pendiente |
 

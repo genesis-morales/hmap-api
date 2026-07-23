@@ -52,6 +52,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_PATHS).permitAll()
+                        // Catálogo de habitaciones: lectura pública (lo consume el portal público)
+                        .requestMatchers(HttpMethod.GET, "/rooms/**").permitAll()
                         .anyRequest().authenticated())
                 // Sin token (o token inválido) en rutas protegidas -> 401, no 403,
                 // para que el frontend limpie la sesión (GET /auth/me).

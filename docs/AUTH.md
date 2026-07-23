@@ -9,8 +9,10 @@ recuperación) y **HU-006** (restablecer contraseña), además de los **roles** 
 ## 1. Lo que se implementó
 
 ### Roles
-Tres roles sembrados vía migración: **ADMIN**, **CLIENTE**, **RECEPCIONISTA**.
+Tres roles sembrados vía migración: **ADMINISTRADOR**, **CLIENTE**, **RECEPCIONISTA**.
 - Tabla `roles` con los 3 registros (seed en `V1__init_auth.sql`).
+- El rol de administrador se sembró como `ADMIN` en V1 y se renombró a `ADMINISTRADOR`
+  en `V2__add_last_name_and_rename_admin.sql` para alinearlo con el literal del frontend.
 - Las autoridades de Spring Security se exponen como `ROLE_<NOMBRE>` (ej. `ROLE_CLIENTE`).
 
 ### Endpoints (`/auth`)
@@ -75,7 +77,7 @@ src/main/java/com/hmap/backend/
 ├── security/{SecurityConfig, SecurityFilter, CustomUserDetailsService}.java
 ├── notification/MailService.java
 ├── config/OpenApiConfig.java
-└── excepton/{GlobalExceptionHandler, BadRequestException, ResourceNotFoundException}.java
+└── exception/{GlobalExceptionHandler, BadRequestException, ResourceNotFoundException}.java
 
 src/main/resources/db/migration/V1__init_auth.sql
 ```
@@ -138,6 +140,10 @@ Tests automatizados:
 ## 4. Pendientes / fuera de alcance actual
 - **Logout (HU-004):** con JWT stateless el cierre de sesión es del lado del cliente (descartar el token).
   No hay endpoint salvo que se quiera implementar una blacklist de tokens.
-- **Correos transaccionales restantes** (HU-035 a HU-037): confirmación/cancelación de reserva, etc.
-- **Cambio de contraseña desde el perfil** (HU-015) y gestión de usuarios por el admin (HU-030 a HU-034).
-- Renombrar el paquete `excepton` → `exception` (cosmético).
+- **Gestión de usuarios por el admin** (HU-030 a HU-034): pendiente para el Entregable 4.
+
+> **Resuelto desde entonces:**
+> - Cambio de contraseña desde el perfil (HU-015) y correos de confirmación/cancelación
+>   de reserva (HU-035/HU-036) se implementaron en el Entregable 2 — ver [E2-RESERVAS.md](./E2-RESERVAS.md).
+> - El paquete `excepton` se renombró a `exception`.
+> - El correo de reserva manual (HU-037) llega con el Entregable 3.
