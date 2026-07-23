@@ -1,5 +1,6 @@
 package com.hmap.backend.auth.service;
 
+import com.hmap.backend.auth.dto.ChangePasswordRequest;
 import com.hmap.backend.auth.dto.ForgotPasswordRequest;
 import com.hmap.backend.auth.dto.LoginRequest;
 import com.hmap.backend.auth.dto.RegisterRequest;
@@ -176,6 +177,34 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.resetPassword(new ResetPasswordRequest("expired", "nuevaClave1")))
                 .isInstanceOf(BadRequestException.class);
+
+        verify(authRepository, never()).save(any());
+    }
+
+    @Test
+    void changePassword_contrasenaActualCorrecta_actualizaYGuarda() {
+        var user = Auth.builder().id(1L).email("ana@mail.com").password("old-hash")
+                .role(clienteRole).active(true).build();
+        when(authRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("claveActual1", "old-hash")).thenReturn(true);
+        when(passwordEncoder.encode("nuevaClave1")).thenReturn("new-hash");
+
+        authService.changePassword(1L, new ChangePasswordRequest("claveActual1", "nuevaClave1"));
+
+        assertThat(user.getPassword()).isEqualTo("new-hash");
+        verify(authRepository).save(user);
+    }
+
+    @Test
+    void changePassword_contrasenaActualIncorrecta_lanzaBadRequest() {
+        var user = Auth.builder().id(1L).email("ana@mail.com").password("old-hash")
+                .role(clienteRole).active(true).build();
+        when(authRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("mala", "old-hash")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.changePassword(1L, new ChangePasswordRequest("mala", "nuevaClave1")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("La contraseña actual no es correcta");
 
         verify(authRepository, never()).save(any());
     }

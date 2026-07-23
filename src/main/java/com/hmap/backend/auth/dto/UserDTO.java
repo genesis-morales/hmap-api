@@ -13,6 +13,7 @@ public record UserDTO(
         String name,
         @JsonProperty("last_name") String lastName,
         String email,
+        String phone,
         String role
 ) {
 
@@ -22,6 +23,7 @@ public record UserDTO(
                 user.getName(),
                 user.getLastName(),
                 user.getEmail(),
+                user.getPhone(),
                 user.getRole().getName()
         );
     }

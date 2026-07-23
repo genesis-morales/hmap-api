@@ -1,5 +1,6 @@
 package com.hmap.backend.auth.service;
 
+import com.hmap.backend.auth.dto.ChangePasswordRequest;
 import com.hmap.backend.auth.dto.ForgotPasswordRequest;
 import com.hmap.backend.auth.dto.LoginRequest;
 import com.hmap.backend.auth.dto.RegisterRequest;
@@ -135,5 +136,19 @@ public class AuthService {
 
         resetToken.setUsed(true);
         resetTokenRepository.save(resetToken);
+    }
+
+    /** Cambia la contraseña del usuario autenticado validando la actual (HU-015). */
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        var user = authRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new BadRequestException("La contraseña actual no es correcta");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        authRepository.save(user);
     }
 }

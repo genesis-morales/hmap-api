@@ -1,5 +1,6 @@
 package com.hmap.backend.auth.controller;
 
+import com.hmap.backend.auth.dto.ChangePasswordRequest;
 import com.hmap.backend.auth.dto.ForgotPasswordRequest;
 import com.hmap.backend.auth.dto.LoginRequest;
 import com.hmap.backend.auth.dto.RegisterRequest;
@@ -55,6 +56,14 @@ public class AuthController {
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "Cambiar la contraseña desde el perfil (HU-015)")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal Auth user,
+                                               @RequestBody @Valid ChangePasswordRequest request) {
+        authService.changePassword(user.getId(), request);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")
