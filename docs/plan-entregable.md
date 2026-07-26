@@ -24,7 +24,7 @@ Convención: ver contrato de endpoints en [api-contrato.md](./api-contrato.md).
 
 El corazón del sistema: el cliente puede buscar disponibilidad, reservar y gestionar sus reservas. Incluye la base de datos de habitaciones (necesaria para calcular disponibilidad) aunque su CRUD administrativo llega en el Entregable 3.
 
-> **Estado:** API ✅ completada (ver [E2-RESERVAS.md](./E2-RESERVAS.md)) · FE pendiente.
+> **Estado:** API ✅ completada (ver [E2-RESERVAS.md](modulos/E2-RESERVAS.md)) · FE pendiente.
 
 | Área | Alcance |
 |---|---|
