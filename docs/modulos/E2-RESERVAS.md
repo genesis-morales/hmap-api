@@ -5,8 +5,8 @@ Cubre las historias **HU-008** (disponibilidad), **HU-009** a **HU-013** (reserv
 **HU-014** (perfil), **HU-015** (cambio de contraseña), **HU-035** y **HU-036**
 (correos de confirmación y cancelación).
 
-> Complementa a [AUTH.md](./AUTH.md) (Entregable 1). Contrato de referencia:
-> [api-contrato.md](./api-contrato.md).
+> Complementa a [AUTH.md](E1-AUTH.md) (Entregable 1). Contrato de referencia:
+> [api-contrato.md](../api-contrato.md).
 
 ---
 
@@ -157,7 +157,7 @@ Modificados: `Auth` (+`phone`), `UserDTO` (+`phone`), `AuthController` (+`/auth/
 | `RESERVATION_EDIT_WINDOW_HOURS` | `48` | Horas antes del check-in hasta las que se puede editar/cancelar |
 | `IMAGES_BASE_URL` | *(vacío)* | Base pública del CDN de imágenes. Ej: `https://res.cloudinary.com/tu_cloud/image/upload`. Vacío → la API devuelve las rutas relativas tal cual. |
 
-(Las del E1 —JWT, SMTP, etc.— siguen igual; ver [AUTH.md](./AUTH.md).)
+(Las del E1 —JWT, SMTP, etc.— siguen igual; ver [AUTH.md](E1-AUTH.md).)
 
 ### Imágenes en Cloudinary
 

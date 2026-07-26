@@ -3,9 +3,9 @@
 Gestión de cuentas de personal interno y consolidación del control de acceso por
 rol. Cubre **HU-030 a HU-034 · RF-015 · RNF-001**.
 
-Complementa a [AUTH.md](./AUTH.md) (E1), [E2-RESERVAS.md](./E2-RESERVAS.md) (E2) y
-[E3-RECEPCION.md](./E3-RECEPCION.md) (E3). El plan general está en
-[E3-E4-PLAN.md](./E3-E4-PLAN.md).
+Complementa a [AUTH.md](E1-AUTH.md) (E1), [E2-RESERVAS.md](E2-RESERVAS.md) (E2) y
+[E3-RECEPCION.md](E3-RECEPCION.md) (E3). El plan general está en
+[E3-E4-PLAN.md](../E3-E4-PLAN.md).
 
 ---
 

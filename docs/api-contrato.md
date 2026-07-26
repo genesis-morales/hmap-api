@@ -59,7 +59,7 @@ User = {
 
 ## Entregable 2 — Portal Cliente + Reservas ✅ (API implementada)
 
-> Implementación documentada en [E2-RESERVAS.md](./E2-RESERVAS.md). Decisiones tomadas:
+> Implementación documentada en [E2-RESERVAS.md](modulos/E2-RESERVAS.md). Decisiones tomadas:
 > estado inicial de reserva = `PENDIENTE`; imágenes en Cloudinary (URLs absolutas en BD);
 > ventana de edición/cancelación configurable (`RESERVATION_EDIT_WINDOW_HOURS`, default 48 h).
 

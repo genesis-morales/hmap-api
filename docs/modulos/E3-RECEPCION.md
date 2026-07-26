@@ -4,9 +4,9 @@ Documentación del backend del Entregable 3 del Hotel Manuel Antonio Park.
 Cubre **HU-016 a HU-029** (dashboard, calendario, check-in/out, reservas internas
 e inventario de habitaciones) y **HU-037** (correo de reserva manual).
 
-> Complementa a [AUTH.md](./AUTH.md) (E1) y [E2-RESERVAS.md](./E2-RESERVAS.md) (E2).
-> Plan de las fases 3 y 4: [E3-E4-PLAN.md](./E3-E4-PLAN.md). Contrato general:
-> [api-contrato.md](./api-contrato.md).
+> Complementa a [AUTH.md](E1-AUTH.md) (E1) y [E2-RESERVAS.md](E2-RESERVAS.md) (E2).
+> Plan de las fases 3 y 4: [E3-E4-PLAN.md](../E3-E4-PLAN.md). Contrato general:
+> [api-contrato.md](../api-contrato.md).
 
 ---
 
