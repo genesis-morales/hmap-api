@@ -1,4 +1,4 @@
-package com.hmap.backend.dashboard.dto;
+package com.hmap.backend.reception.dto;
 
 /**
  * Resumen de ocupación de habitaciones en tiempo real (HU-016).

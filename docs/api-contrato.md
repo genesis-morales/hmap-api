@@ -161,7 +161,7 @@ Todas las rutas requieren rol `RECEPCIONISTA` o `ADMINISTRADOR`.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/dashboard/occupancy` | `{ occupied, available, maintenance, total }` |
+| GET | `/panel-reception/occupancy` | `{ occupied, available, maintenance, total }` |
 | GET | `/reservations/today` | `{ check_ins: Reservation[], check_outs: Reservation[] }` |
 | POST | `/reservations/:id/check-in` | Estado → `CHECK_IN`; habitación → `OCUPADA` |
 | POST | `/reservations/:id/check-out` | Estado → `CHECK_OUT`; habitación → `DISPONIBLE` |

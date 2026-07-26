@@ -50,13 +50,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     /** Entradas programadas para una fecha (check-ins del día, HU-018). */
     @EntityGraph(attributePaths = {"room", "user"})
+    @Query("select r from Reservation r where r.checkIn = :checkIn and r.status in :statuses order by r.checkIn asc")
     List<Reservation> findByCheckInAndStatusInOrderByCheckInAsc(
-            LocalDate checkIn, Collection<ReservationStatus> statuses);
+            @Param("checkIn") LocalDate checkIn,
+            @Param("statuses") Collection<ReservationStatus> statuses);
 
     /** Salidas programadas para una fecha (check-outs del día, HU-018). */
     @EntityGraph(attributePaths = {"room", "user"})
+    @Query("select r from Reservation r where r.checkOut = :checkOut and r.status in :statuses order by r.checkOut asc")
     List<Reservation> findByCheckOutAndStatusInOrderByCheckOutAsc(
-            LocalDate checkOut, Collection<ReservationStatus> statuses);
+            @Param("checkOut") LocalDate checkOut,
+            @Param("statuses") Collection<ReservationStatus> statuses);
 
     /** Reservas que tocan el rango del calendario (solape con [from, to], HU-017). */
     @EntityGraph(attributePaths = {"room", "user"})

@@ -1,6 +1,6 @@
-package com.hmap.backend.dashboard.service;
+package com.hmap.backend.reception.service;
 
-import com.hmap.backend.dashboard.dto.OccupancyDTO;
+import com.hmap.backend.reception.dto.OccupancyDTO;
 import com.hmap.backend.room.enums.RoomStatus;
 import com.hmap.backend.room.repository.RoomRepository;
 import org.springframework.stereotype.Service;
@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
  * con una única consulta agrupada por estado (RNF-004).
  */
 @Service
-public class DashboardService {
+public class ReceptionService {
 
     private final RoomRepository roomRepository;
 
-    public DashboardService(RoomRepository roomRepository) {
+    public ReceptionService(RoomRepository roomRepository) {
         this.roomRepository = roomRepository;
     }
 

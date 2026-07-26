@@ -68,7 +68,7 @@ CANCELADA  → anulación (cliente dentro de ventana, o recepción con motivo). 
 
 | Método | Ruta | HU | Rol |
 |---|---|---|---|
-| GET | `/dashboard/occupancy` | HU-016 | interno |
+| GET | `/panel-reception/occupancy` | HU-016 | interno |
 | GET | `/reservations/today` | HU-018 | interno |
 | GET | `/reservations/calendar?from=&to=` | HU-017 | interno |
 | POST | `/reservations/{id}/confirm` | — | interno |

@@ -1,7 +1,7 @@
-package com.hmap.backend.dashboard.controller;
+package com.hmap.backend.reception.controller;
 
-import com.hmap.backend.dashboard.dto.OccupancyDTO;
-import com.hmap.backend.dashboard.service.DashboardService;
+import com.hmap.backend.reception.dto.OccupancyDTO;
+import com.hmap.backend.reception.service.ReceptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -11,20 +11,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/dashboard")
-@Tag(name = "Dashboard", description = "Métricas operativas del panel de recepción")
+@RequestMapping("/panel-reception")
+@Tag(name = "Panel de Recepción", description = "Métricas operativas del panel de recepción")
 @PreAuthorize("hasAnyRole('RECEPCIONISTA','ADMINISTRADOR')")
-public class DashboardController {
+public class ReceptionController {
 
-    private final DashboardService dashboardService;
+    private final ReceptionService receptionService;
 
-    public DashboardController(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
+    public ReceptionController(ReceptionService receptionService) {
+        this.receptionService = receptionService;
     }
 
     @GetMapping("/occupancy")
     @Operation(summary = "Resumen de ocupación de habitaciones (HU-016)")
     public ResponseEntity<OccupancyDTO> occupancy() {
-        return ResponseEntity.ok(dashboardService.getOccupancy());
+        return ResponseEntity.ok(receptionService.getOccupancy());
     }
 }

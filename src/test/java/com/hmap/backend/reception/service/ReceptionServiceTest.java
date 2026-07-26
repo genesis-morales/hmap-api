@@ -1,4 +1,4 @@
-package com.hmap.backend.dashboard.service;
+package com.hmap.backend.reception.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -15,11 +15,11 @@ import com.hmap.backend.room.enums.RoomStatus;
 import com.hmap.backend.room.repository.RoomRepository;
 
 @ExtendWith(MockitoExtension.class)
-class DashboardServiceTest {
+class ReceptionServiceTest {
 
     @Mock private RoomRepository roomRepository;
 
-    @InjectMocks private DashboardService dashboardService;
+    @InjectMocks private ReceptionService receptionService;
 
     @Test
     void getOccupancy_agrupaConteosPorEstado() {
@@ -28,7 +28,7 @@ class DashboardServiceTest {
                 new Object[]{RoomStatus.OCUPADA, 3L},
                 new Object[]{RoomStatus.MANTENIMIENTO, 1L}));
 
-        var result = dashboardService.getOccupancy();
+        var result = receptionService.getOccupancy();
 
         assertThat(result.available()).isEqualTo(5);
         assertThat(result.occupied()).isEqualTo(3);
@@ -40,7 +40,7 @@ class DashboardServiceTest {
     void getOccupancy_sinHabitaciones_devuelveCeros() {
         when(roomRepository.countGroupedByStatus()).thenReturn(List.of());
 
-        var result = dashboardService.getOccupancy();
+        var result = receptionService.getOccupancy();
 
         assertThat(result.total()).isZero();
     }

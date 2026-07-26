@@ -61,7 +61,7 @@ errores `{ "message": string }` (vía `ProblemDetail.detail`).
 
 | Método | Ruta | HU | Respuesta |
 |--------|------|----|-----------|
-| GET | `/dashboard/occupancy` | HU-016 | `{ occupied, available, maintenance, total }` |
+| GET | `/panel-reception/occupancy` | HU-016 | `{ occupied, available, maintenance, total }` |
 | GET | `/reservations/today` | HU-018 | `{ check_ins: Reservation[], check_outs: Reservation[] }` |
 | GET | `/reservations/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD` | HU-017 | `Reservation[]` (solape con el rango) |
 
@@ -187,7 +187,7 @@ PageResponse<T> = {
   total_pages: number
 }
 
-// GET /dashboard/occupancy
+// GET /panel-reception/occupancy
 Occupancy = { occupied: number, available: number, maintenance: number, total: number }
 ```
 
@@ -217,7 +217,7 @@ Occupancy = { occupied: number, available: number, maintenance: number, total: n
 1. `./mvnw spring-boot:run` → `http://localhost:8080/swagger-ui/index.html`.
 2. Login como recepcionista (`recepcion@hmap.com` / `recepcion123`) → *Authorize* con el token.
 3. Flujo sugerido:
-   - `GET /dashboard/occupancy` → conteo por estado.
+   - `GET /panel-reception/occupancy` → conteo por estado.
    - Como cliente, crear una reserva (`POST /reservations`) → nace `PENDIENTE`.
    - Como recepción: `POST /reservations/{id}/confirm` → `CONFIRMADA`;
      `POST /reservations/{id}/check-in` → `CHECK_IN` y la habitación queda `OCUPADA`;
