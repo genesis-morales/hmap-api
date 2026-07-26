@@ -1,11 +1,14 @@
 package com.hmap.backend.room.service;
 
-import com.hmap.backend.exception.BadRequestException;
-import com.hmap.backend.exception.ResourceNotFoundException;
-import com.hmap.backend.room.entity.Room;
-import com.hmap.backend.room.enums.RoomStatus;
-import com.hmap.backend.room.repository.RoomRepository;
-import com.hmap.backend.room.support.ImageUrlResolver;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,23 +16,21 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.hmap.backend.exception.BadRequestException;
+import com.hmap.backend.exception.ConflictException;
+import com.hmap.backend.exception.ResourceNotFoundException;
+import com.hmap.backend.room.dto.RoomRequest;
+import com.hmap.backend.room.dto.RoomStatusRequest;
+import com.hmap.backend.room.entity.Room;
+import com.hmap.backend.room.enums.RoomStatus;
+import com.hmap.backend.room.repository.RoomRepository;
+import com.hmap.backend.room.support.ImageUrlResolver;
 
 @ExtendWith(MockitoExtension.class)
 class RoomServiceTest {
 
     @Mock private RoomRepository roomRepository;
+    @Mock private com.hmap.backend.reservation.repository.ReservationRepository reservationRepository;
 
     // Real con base vacía: resolve() devuelve la ruta tal cual
     @Spy private ImageUrlResolver imageUrlResolver = new ImageUrlResolver("");
@@ -82,13 +83,13 @@ class RoomServiceTest {
     void findAvailable_delegaAlRepositorioConEstadosActivos() {
         var checkIn = LocalDate.now().plusDays(7);
         var checkOut = LocalDate.now().plusDays(10);
-        when(roomRepository.findAvailable(checkIn, checkOut, 2, RoomService.ACTIVE_STATUSES))
+        when(roomRepository.findAvailable(checkIn, checkOut, 2, RoomService.BLOCKING_STATUSES))
                 .thenReturn(List.of(buildRoom()));
 
         var result = roomService.findAvailable(checkIn, checkOut, 2);
 
         assertThat(result).hasSize(1);
-        verify(roomRepository).findAvailable(checkIn, checkOut, 2, RoomService.ACTIVE_STATUSES);
+        verify(roomRepository).findAvailable(checkIn, checkOut, 2, RoomService.BLOCKING_STATUSES);
     }
 
     @Test
@@ -116,5 +117,112 @@ class RoomServiceTest {
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(3), 0))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("La cantidad de huéspedes debe ser al menos 1");
+    }
+
+    // === inventario (HU-025 a HU-028) ===
+
+    private RoomRequest buildRoomRequest(String slug, String status) {
+        return new RoomRequest(slug, "Nueva habitación", "Descripción", 2, 15, "1 cama doble",
+                new BigDecimal("100.00"), "No se puede fumar", status,
+                List.of("hmap/rooms/nueva/bed"), List.of("Wifi"), List.of("Ducha"), List.of("Vistas al jardín"));
+    }
+
+    /** Room con colecciones mutables (como las entrega Hibernate al cargar). */
+    private Room buildMutableRoom() {
+        return Room.builder()
+                .id(1L).slug("old-slug").name("Antigua").description("desc")
+                .capacity(2).area(10).bedsLabel("1 cama").pricePerNight(new BigDecimal("90.00"))
+                .smokingPolicy("No se puede fumar").status(RoomStatus.DISPONIBLE)
+                .build();
+    }
+
+    @Test
+    void create_habitacionValida_seCreaComoDisponible() {
+        var request = buildRoomRequest("nueva-hab", null);
+        when(roomRepository.existsBySlug("nueva-hab")).thenReturn(false);
+
+        var result = roomService.create(request);
+
+        assertThat(result.slug()).isEqualTo("nueva-hab");
+        assertThat(result.status()).isEqualTo("DISPONIBLE");
+        assertThat(result.amenities()).containsExactly("Wifi");
+        verify(roomRepository).save(any(Room.class));
+    }
+
+    @Test
+    void create_slugDuplicado_lanzaConflict() {
+        var request = buildRoomRequest("nueva-hab", null);
+        when(roomRepository.existsBySlug("nueva-hab")).thenReturn(true);
+
+        assertThatThrownBy(() -> roomService.create(request))
+                .isInstanceOf(ConflictException.class);
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
+    void update_habitacionExistente_actualizaCampos() {
+        var existing = buildMutableRoom();
+        var request = buildRoomRequest("nueva-hab", null);
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(roomRepository.existsBySlugAndIdNot("nueva-hab", 1L)).thenReturn(false);
+
+        var result = roomService.update(1L, request);
+
+        assertThat(result.name()).isEqualTo("Nueva habitación");
+        assertThat(result.slug()).isEqualTo("nueva-hab");
+        verify(roomRepository).save(existing);
+    }
+
+    @Test
+    void update_slugDuplicadoDeOtra_lanzaConflict() {
+        var existing = buildMutableRoom();
+        var request = buildRoomRequest("nueva-hab", null);
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(roomRepository.existsBySlugAndIdNot("nueva-hab", 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> roomService.update(1L, request))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void delete_conReservasActivas_lanzaConflict() {
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(buildRoom()));
+        when(reservationRepository.existsByRoomIdAndStatusIn(1L, RoomService.BLOCKING_STATUSES))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> roomService.delete(1L))
+                .isInstanceOf(ConflictException.class);
+        verify(roomRepository, never()).delete(any());
+    }
+
+    @Test
+    void delete_sinReservasActivas_elimina() {
+        var room = buildRoom();
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(reservationRepository.existsByRoomIdAndStatusIn(1L, RoomService.BLOCKING_STATUSES))
+                .thenReturn(false);
+
+        roomService.delete(1L);
+
+        verify(roomRepository).delete(room);
+    }
+
+    @Test
+    void changeStatus_valido_actualizaEstado() {
+        var room = buildRoom();
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+
+        var result = roomService.changeStatus(1L, new RoomStatusRequest("MANTENIMIENTO"));
+
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.MANTENIMIENTO);
+        assertThat(result.status()).isEqualTo("MANTENIMIENTO");
+    }
+
+    @Test
+    void changeStatus_invalido_lanzaBadRequest() {
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(buildRoom()));
+
+        assertThatThrownBy(() -> roomService.changeStatus(1L, new RoomStatusRequest("VOLANDO")))
+                .isInstanceOf(BadRequestException.class);
     }
 }

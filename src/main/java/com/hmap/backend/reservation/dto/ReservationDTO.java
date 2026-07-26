@@ -1,13 +1,13 @@
 package com.hmap.backend.reservation.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hmap.backend.reservation.entity.Reservation;
 import com.hmap.backend.room.dto.RoomDTO;
 import com.hmap.backend.room.support.ImageUrlResolver;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Reserva tal como la consume el frontend (contrato E2). Los flags
@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public record ReservationDTO(
         Long id,
         String code,
+        GuestDTO guest,
         RoomDTO room,
         @JsonProperty("check_in") LocalDate checkIn,
         @JsonProperty("check_out") LocalDate checkOut,
@@ -34,6 +35,7 @@ public record ReservationDTO(
         return new ReservationDTO(
                 reservation.getId(),
                 "RSV-%06d".formatted(reservation.getId()),
+                GuestDTO.from(reservation.getUser()),
                 RoomDTO.from(reservation.getRoom(), imageUrlResolver),
                 reservation.getCheckIn(),
                 reservation.getCheckOut(),
