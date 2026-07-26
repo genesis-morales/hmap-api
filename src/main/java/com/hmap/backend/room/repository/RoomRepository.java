@@ -1,21 +1,33 @@
 package com.hmap.backend.room.repository;
 
-import com.hmap.backend.reservation.enums.ReservationStatus;
-import com.hmap.backend.room.entity.Room;
-import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.hmap.backend.reservation.enums.ReservationStatus;
+import com.hmap.backend.room.entity.Room;
+
+import jakarta.persistence.LockModeType;
+
 public interface RoomRepository extends JpaRepository<Room, Long> {
 
     Optional<Room> findBySlug(String slug);
+
+    /** Unicidad del slug al crear una habitación (HU-025). */
+    boolean existsBySlug(String slug);
+
+    /** Unicidad del slug al editar, excluyendo la propia habitación (HU-026). */
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    /** Conteo de habitaciones por estado para el dashboard de ocupación (HU-016). */
+    @Query("select r.status, count(r) from Room r group by r.status")
+    List<Object[]> countGroupedByStatus();
 
     /**
      * Carga la habitación con bloqueo pesimista (SELECT ... FOR UPDATE).

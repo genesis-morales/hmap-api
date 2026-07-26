@@ -1,12 +1,34 @@
 package com.hmap.backend.reservation.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import com.hmap.backend.auth.entity.Auth;
 import com.hmap.backend.exception.BadRequestException;
 import com.hmap.backend.exception.ConflictException;
 import com.hmap.backend.exception.ForbiddenException;
 import com.hmap.backend.exception.ResourceNotFoundException;
 import com.hmap.backend.notification.MailService;
+import com.hmap.backend.reservation.dto.CancelReservationRequest;
 import com.hmap.backend.reservation.dto.CreateReservationRequest;
+import com.hmap.backend.reservation.dto.ManualReservationRequest;
 import com.hmap.backend.reservation.dto.UpdateReservationRequest;
 import com.hmap.backend.reservation.entity.Reservation;
 import com.hmap.backend.reservation.enums.ReservationStatus;
@@ -18,32 +40,7 @@ import com.hmap.backend.room.enums.RoomStatus;
 import com.hmap.backend.room.repository.RoomRepository;
 import com.hmap.backend.room.service.RoomService;
 import com.hmap.backend.room.support.ImageUrlResolver;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.hmap.backend.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
@@ -51,6 +48,7 @@ class ReservationServiceTest {
     @Mock private ReservationRepository reservationRepository;
     @Mock private RoomRepository roomRepository;
     @Mock private MailService mailService;
+    @Mock private UserService userService;
 
     // Real con base vacía: resolve() devuelve la ruta tal cual
     @Spy private ImageUrlResolver imageUrlResolver = new ImageUrlResolver("");
@@ -109,7 +107,7 @@ class ReservationServiceTest {
         var checkOut = LocalDate.now().plusDays(10); // 3 noches
         var request = new CreateReservationRequest(10L, checkIn, checkOut, 2);
         when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
-        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut, RoomService.ACTIVE_STATUSES, null))
+        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut, RoomService.BLOCKING_STATUSES, null))
                 .thenReturn(false);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> {
             Reservation r = inv.getArgument(0);
@@ -136,7 +134,7 @@ class ReservationServiceTest {
         var checkIn = LocalDate.now().plusDays(7);
         var checkOut = LocalDate.now().plusDays(10);
         when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
-        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut, RoomService.ACTIVE_STATUSES, null))
+        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut, RoomService.BLOCKING_STATUSES, null))
                 .thenReturn(true);
 
         assertThatThrownBy(() -> reservationService.create(user,
@@ -299,7 +297,7 @@ class ReservationServiceTest {
         var newCheckOut = LocalDate.now().plusDays(24); // 4 noches
         when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
         when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
-        when(reservationRepository.existsOverlapping(10L, newCheckIn, newCheckOut, RoomService.ACTIVE_STATUSES, 123L))
+        when(reservationRepository.existsOverlapping(10L, newCheckIn, newCheckOut, RoomService.BLOCKING_STATUSES, 123L))
                 .thenReturn(false);
 
         var result = reservationService.update(user, 123L,
@@ -308,7 +306,7 @@ class ReservationServiceTest {
         assertThat(result.total()).isEqualByComparingTo("960.00"); // 4 * 240
         assertThat(result.checkIn()).isEqualTo(newCheckIn);
         verify(reservationRepository).existsOverlapping(10L, newCheckIn, newCheckOut,
-                RoomService.ACTIVE_STATUSES, 123L);
+                RoomService.BLOCKING_STATUSES, 123L);
     }
 
     @Test
@@ -345,7 +343,7 @@ class ReservationServiceTest {
                 ReservationStatus.PENDIENTE);
         when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
 
-        var result = reservationService.cancel(user, 123L);
+        var result = reservationService.cancel(user, 123L, null);
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELADA);
         assertThat(result.status()).isEqualTo("CANCELADA");
@@ -362,7 +360,7 @@ class ReservationServiceTest {
                 ReservationStatus.PENDIENTE);
         when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
 
-        assertThatThrownBy(() -> reservationService.cancel(user, 123L))
+        assertThatThrownBy(() -> reservationService.cancel(user, 123L, null))
                 .isInstanceOf(ConflictException.class)
                 .hasMessage("La reserva ya no puede cancelarse");
 
@@ -375,7 +373,209 @@ class ReservationServiceTest {
                 ReservationStatus.CANCELADA);
         when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
 
-        assertThatThrownBy(() -> reservationService.cancel(user, 123L))
+        assertThatThrownBy(() -> reservationService.cancel(user, 123L, null))
                 .isInstanceOf(ConflictException.class);
+    }
+
+    // === recepción: confirm / check-in / check-out (HU-019) ===
+
+    private Auth internalActor() {
+        return Auth.builder()
+                .id(9L).name("Recep").lastName("HMAP").email("recepcion@mail.com")
+                .role(new Role(3L, RoleName.RECEPCIONISTA.name())).active(true).build();
+    }
+
+    @Test
+    void confirm_reservaPendiente_pasaAConfirmada() {
+        var reservation = buildReservation(LocalDate.now().plusDays(5), LocalDate.now().plusDays(7),
+                ReservationStatus.PENDIENTE);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        var result = reservationService.confirm(123L);
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMADA);
+        assertThat(result.status()).isEqualTo("CONFIRMADA");
+        verify(reservationRepository).save(reservation);
+    }
+
+    @Test
+    void confirm_reservaNoPendiente_lanzaConflict() {
+        var reservation = buildReservation(LocalDate.now().plusDays(5), LocalDate.now().plusDays(7),
+                ReservationStatus.CONFIRMADA);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() -> reservationService.confirm(123L))
+                .isInstanceOf(ConflictException.class);
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void checkIn_reservaConfirmada_ocupaLaHabitacion() {
+        var reservation = buildReservation(LocalDate.now(), LocalDate.now().plusDays(2),
+                ReservationStatus.CONFIRMADA);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        var result = reservationService.checkIn(123L);
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CHECK_IN);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.OCUPADA);
+        assertThat(result.status()).isEqualTo("CHECK_IN");
+    }
+
+    @Test
+    void checkIn_reservaNoConfirmada_lanzaConflict() {
+        var reservation = buildReservation(LocalDate.now(), LocalDate.now().plusDays(2),
+                ReservationStatus.PENDIENTE);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() -> reservationService.checkIn(123L))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void checkOut_reservaConCheckIn_liberaLaHabitacion() {
+        room.setStatus(RoomStatus.OCUPADA);
+        var reservation = buildReservation(LocalDate.now().minusDays(2), LocalDate.now(),
+                ReservationStatus.CHECK_IN);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        var result = reservationService.checkOut(123L);
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CHECK_OUT);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.DISPONIBLE);
+        assertThat(result.status()).isEqualTo("CHECK_OUT");
+    }
+
+    @Test
+    void checkOut_reservaSinCheckIn_lanzaConflict() {
+        var reservation = buildReservation(LocalDate.now().minusDays(2), LocalDate.now(),
+                ReservationStatus.CONFIRMADA);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() -> reservationService.checkOut(123L))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    // === recepción: edición y cancelación internas (HU-021/HU-022) ===
+
+    @Test
+    void updateInterno_ignoraLaVentanaDePlazos() {
+        // Reserva dentro de las 48 h: el cliente no podría, el rol interno sí.
+        var reservation = buildReservation(LocalDate.now().plusDays(1), LocalDate.now().plusDays(3),
+                ReservationStatus.PENDIENTE);
+        var newCheckIn = LocalDate.now().plusDays(20);
+        var newCheckOut = LocalDate.now().plusDays(23);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+        when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
+        when(reservationRepository.existsOverlapping(10L, newCheckIn, newCheckOut,
+                RoomService.BLOCKING_STATUSES, 123L)).thenReturn(false);
+
+        var result = reservationService.update(internalActor(), 123L,
+                new UpdateReservationRequest(newCheckIn, newCheckOut, 2));
+
+        assertThat(result.checkIn()).isEqualTo(newCheckIn);
+    }
+
+    @Test
+    void cancelInterno_sinMotivo_lanzaBadRequest() {
+        var reservation = buildReservation(LocalDate.now().plusDays(5), LocalDate.now().plusDays(7),
+                ReservationStatus.PENDIENTE);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() -> reservationService.cancel(internalActor(), 123L,
+                new CancelReservationRequest("   ")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("El motivo de la cancelación es obligatorio");
+
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelInterno_conMotivo_ignoraLaVentanaYCancela() {
+        // Dentro de las 48 h: el rol interno puede cancelar igualmente (con motivo).
+        var reservation = buildReservation(LocalDate.now().plusDays(1), LocalDate.now().plusDays(3),
+                ReservationStatus.PENDIENTE);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        var result = reservationService.cancel(internalActor(), 123L,
+                new CancelReservationRequest("No-show del huésped"));
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELADA);
+        assertThat(result.status()).isEqualTo("CANCELADA");
+        verify(reservationRepository).save(reservation);
+    }
+
+    // === recepción: reserva manual (HU-020/HU-037) ===
+
+    @Test
+    void createManual_cuentaNueva_creaReservaYEnviaCorreoConCredenciales() {
+        var checkIn = LocalDate.now().plusDays(7);
+        var checkOut = LocalDate.now().plusDays(9);
+        var guestData = new ManualReservationRequest.Guest("Carlos", "Ruiz", "carlos@mail.com", "888");
+        var request = new ManualReservationRequest(10L, checkIn, checkOut, 2, guestData);
+
+        var guestAccount = Auth.builder().id(50L).name("Carlos").lastName("Ruiz").email("carlos@mail.com")
+                .role(new Role(2L, RoleName.CLIENTE.name())).active(true).build();
+        when(userService.findOrCreateGuest("Carlos", "Ruiz", "carlos@mail.com", "888"))
+                .thenReturn(new UserService.ProvisionedGuest(guestAccount, "TempPass1234"));
+        when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
+        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut,
+                RoomService.BLOCKING_STATUSES, null)).thenReturn(false);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> {
+            Reservation r = inv.getArgument(0);
+            r.setId(77L);
+            return r;
+        });
+
+        var result = reservationService.createManual(request);
+
+        assertThat(result.status()).isEqualTo("PENDIENTE");
+        assertThat(result.guest().email()).isEqualTo("carlos@mail.com");
+        verify(mailService).sendManualReservationEmail(
+                eq("carlos@mail.com"), eq("Carlos"), anyString(), anyString(),
+                any(LocalDate.class), any(LocalDate.class), anyInt(), anyLong(),
+                any(BigDecimal.class), eq("TempPass1234"));
+    }
+
+    // === recepción: hoy / calendario / búsqueda (HU-017/HU-018/HU-023/HU-024) ===
+
+    @Test
+    void findToday_agrupaEntradasYSalidas() {
+        var arriving = buildReservation(LocalDate.now(), LocalDate.now().plusDays(2),
+                ReservationStatus.CONFIRMADA);
+        var departing = buildReservation(LocalDate.now().minusDays(2), LocalDate.now(),
+                ReservationStatus.CHECK_IN);
+        when(reservationRepository.findByCheckInAndStatusInOrderByCheckInAsc(any(LocalDate.class), any()))
+                .thenReturn(List.of(arriving));
+        when(reservationRepository.findByCheckOutAndStatusInOrderByCheckOutAsc(any(LocalDate.class), any()))
+                .thenReturn(List.of(departing));
+
+        var result = reservationService.findToday();
+
+        assertThat(result.checkIns()).hasSize(1);
+        assertThat(result.checkOuts()).hasSize(1);
+    }
+
+    @Test
+    void findCalendar_rangoInvertido_lanzaBadRequest() {
+        assertThatThrownBy(() -> reservationService.findCalendar(
+                LocalDate.now().plusDays(5), LocalDate.now().plusDays(1)))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void search_mapeaLaPaginaAPageResponse() {
+        var reservation = buildReservation(LocalDate.now().plusDays(5), LocalDate.now().plusDays(7),
+                ReservationStatus.CONFIRMADA);
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(reservationRepository.search(isNull(), isNull(), isNull(), isNull(), isNull(),
+                any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(reservation), pageable, 1));
+
+        var result = reservationService.search(null, null, null, null, 0, 20);
+
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.totalElements()).isEqualTo(1);
+        assertThat(result.page()).isZero();
     }
 }
