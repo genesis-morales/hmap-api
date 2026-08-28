@@ -12,7 +12,8 @@ import com.hmap.backend.room.support.ImageUrlResolver;
 /**
  * Reserva tal como la consume el frontend (contrato E2). Los flags
  * {@code can_edit}/{@code can_cancel} los calcula la API según la política
- * de plazos; el {@code code} se deriva del id (RSV-000123).
+ * de plazos; el {@code code} se deriva del id (RSV-000123). El {@code type}
+ * indica si fue creada en línea (portal público) o manualmente (panel interno).
  */
 public record ReservationDTO(
         Long id,
@@ -25,6 +26,7 @@ public record ReservationDTO(
         long nights,
         BigDecimal total,
         String status,
+        String type,
         @JsonProperty("can_edit") boolean canEdit,
         @JsonProperty("can_cancel") boolean canCancel,
         @JsonProperty("created_at") LocalDateTime createdAt
@@ -43,6 +45,7 @@ public record ReservationDTO(
                 reservation.getNights(),
                 reservation.getTotal(),
                 reservation.getStatus().name(),
+                reservation.getType().name(),
                 canEdit,
                 canCancel,
                 reservation.getCreatedAt()

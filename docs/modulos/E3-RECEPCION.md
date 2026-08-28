@@ -4,9 +4,9 @@ Documentación del backend del Entregable 3 del Hotel Manuel Antonio Park.
 Cubre **HU-016 a HU-029** (dashboard, calendario, check-in/out, reservas internas
 e inventario de habitaciones) y **HU-037** (correo de reserva manual).
 
-> Complementa a [AUTH.md](./AUTH.md) (E1) y [E2-RESERVAS.md](./E2-RESERVAS.md) (E2).
-> Plan de las fases 3 y 4: [E3-E4-PLAN.md](./E3-E4-PLAN.md). Contrato general:
-> [api-contrato.md](./api-contrato.md).
+> Complementa a [AUTH.md](E1-AUTH.md) (E1) y [E2-RESERVAS.md](E2-RESERVAS.md) (E2).
+> Plan de las fases 3 y 4: [E3-E4-PLAN.md](../E3-E4-PLAN.md). Contrato general:
+> [api-contrato.md](../api-contrato.md).
 
 ---
 
@@ -233,17 +233,18 @@ Occupancy = { occupied: number, available: number, maintenance: number, total: n
 Tests automatizados (unitarios, sin BD):
 
 ```bash
-./mvnw test -Dtest=ReservationServiceTest,RoomServiceTest,UserServiceTest,AuthServiceTest,DashboardServiceTest
+./mvnw test -Dtest='!BackendApplicationTests'
 ```
 
 | Suite | Tests | Cubre (E3 añadido) |
 |---|---|---|
 | `ReservationServiceTest` | 32 | confirm/check-in/check-out y guardas, edición/cancelación interna, reserva manual, hoy/calendario/búsqueda |
 | `RoomServiceTest` | 14 | crear/editar/eliminar (con reservas activas), cambio de estado |
-| `DashboardServiceTest` | 2 | conteo de ocupación agrupado por estado |
+| `ReceptionServiceTest` | 2 | conteo de ocupación agrupado por estado |
+| `AdminUserServiceTest` | 12 | E4 (ver [E4-ADMIN.md](E4-ADMIN.md)) |
 | `AuthServiceTest` / `UserServiceTest` | 11 / 3 | E1/E2 |
 
-Total: **62 tests unitarios en verde.**
+Total: **74 tests unitarios en verde.**
 
 > El test de contexto (`BackendApplicationTests`) requiere MySQL en ejecución.
 > Tras los defaults de correo/JWT, el arranque ya no depende del `.env` (salvo la BD).
@@ -252,6 +253,6 @@ Total: **62 tests unitarios en verde.**
 
 ## 7. Pendientes / fuera de alcance
 
-- **Frontend del panel de recepción**: siguiente paso de la fase.
+- **Frontend del panel de recepción**: ✅ implementado (rama `feat/v3-reception`).
+- **Gestión de usuarios internos** (HU-030 a HU-034): ✅ Entregable 4, ver [E4-ADMIN.md](E4-ADMIN.md).
 - **Expiración automática de no-shows** (`@Scheduled`): fuera de alcance por decisión.
-- **Gestión de usuarios internos** (HU-030 a HU-034): Entregable 4.

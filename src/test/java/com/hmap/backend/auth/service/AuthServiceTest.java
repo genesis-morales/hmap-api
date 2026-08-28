@@ -88,7 +88,9 @@ class AuthServiceTest {
         when(authRepository.existsByEmail("ana@mail.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(request))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOf(BadRequestException.class)
+                // El campo permite al FE anclar el error al input en vez de un aviso global.
+                .extracting(e -> ((BadRequestException) e).getField()).isEqualTo("email");
 
         verify(authRepository, never()).save(any());
     }
@@ -204,7 +206,9 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.changePassword(1L, new ChangePasswordRequest("mala", "nuevaClave1")))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("La contraseña actual no es correcta");
+                .hasMessage("La contraseña actual no es correcta")
+                // Se ancla al input de contraseña actual, no a un aviso global (HU-015).
+                .extracting(e -> ((BadRequestException) e).getField()).isEqualTo("current_password");
 
         verify(authRepository, never()).save(any());
     }
