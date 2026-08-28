@@ -31,6 +31,7 @@ import com.hmap.backend.reservation.dto.TodayReservationsDTO;
 import com.hmap.backend.reservation.dto.UpdateReservationRequest;
 import com.hmap.backend.reservation.entity.Reservation;
 import com.hmap.backend.reservation.enums.ReservationStatus;
+import com.hmap.backend.reservation.enums.ReservationType;
 import com.hmap.backend.reservation.repository.ReservationRepository;
 import com.hmap.backend.reservation.support.StayDates;
 import com.hmap.backend.role.enums.RoleName;
@@ -111,6 +112,7 @@ public class ReservationService {
                 .guests(request.guests())
                 .total(calculateTotal(room, request.checkIn(), request.checkOut()))
                 .status(INITIAL_STATUS)
+                .type(ReservationType.ONLINE)
                 .build();
 
         reservationRepository.save(reservation);
@@ -301,6 +303,7 @@ public class ReservationService {
                 .guests(request.guests())
                 .total(calculateTotal(room, request.checkIn(), request.checkOut()))
                 .status(INITIAL_STATUS)
+                .type(ReservationType.MANUAL)
                 .build();
 
         reservationRepository.save(reservation);

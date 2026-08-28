@@ -144,6 +144,7 @@ Reservation = {
   nights: number
   total: number             // nights * price_per_night, calculado por la API
   status: 'PENDIENTE' | 'CONFIRMADA' | 'CHECK_IN' | 'CHECK_OUT' | 'CANCELADA'
+  type: 'ONLINE' | 'MANUAL' // origen: ONLINE = portal público, MANUAL = panel interno
   can_edit: boolean         // la API aplica la política de plazos (HU-012)
   can_cancel: boolean       // ídem (HU-013)
   created_at: string        // ISO 8601

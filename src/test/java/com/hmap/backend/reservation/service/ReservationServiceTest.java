@@ -32,6 +32,7 @@ import com.hmap.backend.reservation.dto.ManualReservationRequest;
 import com.hmap.backend.reservation.dto.UpdateReservationRequest;
 import com.hmap.backend.reservation.entity.Reservation;
 import com.hmap.backend.reservation.enums.ReservationStatus;
+import com.hmap.backend.reservation.enums.ReservationType;
 import com.hmap.backend.reservation.repository.ReservationRepository;
 import com.hmap.backend.role.entity.Role;
 import com.hmap.backend.role.enums.RoleName;
@@ -95,6 +96,7 @@ class ReservationServiceTest {
                 .guests(2)
                 .total(new BigDecimal("720.00"))
                 .status(status)
+                .type(ReservationType.ONLINE)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
