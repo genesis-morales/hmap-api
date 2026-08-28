@@ -70,7 +70,7 @@ public class RoomService {
     public List<RoomDTO> findAvailable(LocalDate checkIn, LocalDate checkOut, int guests) {
         StayDates.validate(checkIn, checkOut);
         if (guests < 1) {
-            throw new BadRequestException("La cantidad de huéspedes debe ser al menos 1");
+            throw new BadRequestException("La cantidad de huéspedes debe ser al menos 1", "guests");
         }
         return roomRepository.findAvailable(checkIn, checkOut, guests, BLOCKING_STATUSES)
                 .stream()
@@ -84,7 +84,7 @@ public class RoomService {
     @Transactional
     public RoomDTO create(RoomRequest request) {
         if (roomRepository.existsBySlug(request.slug())) {
-            throw new ConflictException("Ya existe una habitación con ese slug");
+            throw new ConflictException("Ya existe una habitación con ese slug", "slug");
         }
 
         // builder().build() inicializa las colecciones (@Builder.Default) como listas
@@ -103,7 +103,7 @@ public class RoomService {
         var room = getRoom(id);
 
         if (roomRepository.existsBySlugAndIdNot(request.slug(), id)) {
-            throw new ConflictException("Ya existe una habitación con ese slug");
+            throw new ConflictException("Ya existe una habitación con ese slug", "slug");
         }
 
         applyRequest(room, request);
@@ -172,7 +172,7 @@ public class RoomService {
         try {
             return RoomStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Estado de habitación inválido: " + status);
+            throw new BadRequestException("Estado de habitación inválido: " + status, "status");
         }
     }
 }

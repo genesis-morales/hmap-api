@@ -2,6 +2,7 @@ package com.hmap.backend.reservation.entity;
 
 import com.hmap.backend.auth.entity.Auth;
 import com.hmap.backend.reservation.enums.ReservationStatus;
+import com.hmap.backend.reservation.enums.ReservationType;
 import com.hmap.backend.room.entity.Room;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -71,6 +72,11 @@ public class Reservation {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 10)
+    private ReservationType type;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

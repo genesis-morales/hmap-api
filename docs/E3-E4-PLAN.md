@@ -1,9 +1,9 @@
 # Plan de implementación — Entregables 3 y 4 (API)
 
 Plan acordado para las dos últimas fases del backend del Hotel Manuel Antonio Park.
-Complementa a [plan-entregable.md](./plan-entregable.md) y al [contrato de API](./api-contrato.md).
-Los entregables ya cerrados se documentan en [AUTH.md](./AUTH.md) (E1) y
-[E2-RESERVAS.md](./E2-RESERVAS.md) (E2).
+Complementa a [plan-entregable.md](plan-entregable.md) y al [contrato de API](api-contrato.md).
+Los entregables ya cerrados se documentan en [AUTH.md](modulos/E1-AUTH.md) (E1) y
+[E2-RESERVAS.md](modulos/E2-RESERVAS.md) (E2).
 
 > Nota: el texto literal de los RF/RNF vive en el documento de tesis; aquí se
 > referencian por el mapeo de `plan-entregable.md`.

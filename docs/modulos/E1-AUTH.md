@@ -144,6 +144,6 @@ Tests automatizados:
 
 > **Resuelto desde entonces:**
 > - Cambio de contraseña desde el perfil (HU-015) y correos de confirmación/cancelación
->   de reserva (HU-035/HU-036) se implementaron en el Entregable 2 — ver [E2-RESERVAS.md](./E2-RESERVAS.md).
+>   de reserva (HU-035/HU-036) se implementaron en el Entregable 2 — ver [E2-RESERVAS.md](E2-RESERVAS.md).
 > - El paquete `excepton` se renombró a `exception`.
 > - El correo de reserva manual (HU-037) llega con el Entregable 3.
