@@ -100,13 +100,26 @@ Gestión de usuarios internos, control de acceso por roles consolidado y cierre 
 
 ## Estado actual y trabajo restante
 
-La **API está cerrada**: los cuatro entregables están implementados y con 74 tests
+La **API está cerrada**: los cuatro entregables están implementados con 82 tests
 unitarios en verde. Lo que queda es frontend y cierre.
+
+### Mejoras recientes (rama `fea/admin-v4`)
+
+1. **Anclaje de errores de validación**: Los errores atribuibles a un campo ahora
+   viajan en `errors` (además de `detail`) con nombres en `snake_case`, para que
+   el FE los ancle al input en rojo en lugar de mostrar un toast genérico. Guía
+   completa para el FE en [FE-VALIDACION-ERRORES.md](FE-VALIDACION-ERRORES.md).
+
+2. **Tipo de reserva**: Campo `type` (`ONLINE` | `MANUAL`) agregado a las reservas
+   para distinguir su origen en el panel de recepción. Las reservas del portal
+   público se marcan como `ONLINE`, las creadas por recepcionistas como `MANUAL`.
 
 | Pendiente | Dónde | Detalle |
 |---|---|---|
-| Panel admin (HU-030 → HU-034) | FE | Módulo `features/admin` + rutas `/panel-admin/**` con guarda `ADMINISTRADOR`. Contrato en [E4-ADMIN.md § 4](modulos/E4-ADMIN.md#4-contrato-de-datos-json-para-el-frontend). |
+| Panel admin (HU-030 → HU-034) | FE | Módulo `features/admin` + rutas `/panel-admin/**` con guarda `ADMINISTRADOR`. Contrato en E4-ADMIN.md § 4. |
+| Anclaje de errores | FE | Implementar helper `applyApiError` en 12 formularios (ver [FE-VALIDACION-ERRORES.md](FE-VALIDACION-ERRORES.md) § 4). |
+| Columna "Origen" en reservas | FE | Agregar columna `type` en tabla de reservas del panel recepción (ver [FE-VALIDACION-ERRORES.md](FE-VALIDACION-ERRORES.md) § 10). |
 | Tests E2E de admin | FE | `e2e/admin.spec.ts` los tiene comentados esperando la UI. |
-| Tests de API de admin | FE | Crear `tests/api/admin-users.test.ts` ([E4-ADMIN.md § 8](modulos/E4-ADMIN.md#8-pruebas-automatizadas-desde-el-frontend)). |
+| Tests de API de admin | FE | Crear `tests/api/admin-users.test.ts` (E4-ADMIN.md § 8). |
 | Pulido responsive/usabilidad | FE | RNF-002 y RNF-003, transversal a los tres paneles. |
 | Cierre de versión | API | Tag `v4-entregable` y merge de `fea/admin-v4` → `main`. |
