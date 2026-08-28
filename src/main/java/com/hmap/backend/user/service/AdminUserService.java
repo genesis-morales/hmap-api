@@ -3,7 +3,6 @@ package com.hmap.backend.user.service;
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hmap.backend.auth.entity.Auth;
 import com.hmap.backend.auth.repository.AuthRepository;
+import com.hmap.backend.common.dto.PageRequests;
 import com.hmap.backend.common.dto.PageResponse;
 import com.hmap.backend.exception.BadRequestException;
 import com.hmap.backend.exception.ConflictException;
@@ -50,7 +50,7 @@ public class AdminUserService {
     @Transactional(readOnly = true)
     public PageResponse<AdminUserDTO> list(RoleName role, Boolean active, String search, int page, int size) {
         var normalizedSearch = (search == null || search.isBlank()) ? null : search.trim();
-        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+        var pageable = PageRequests.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
 
         var result = authRepository.searchUsers(
                 role == null ? null : role.name(), active, normalizedSearch, pageable);
@@ -64,7 +64,7 @@ public class AdminUserService {
         var role = resolveAssignableRole(request.role());
 
         if (authRepository.existsByEmail(request.email())) {
-            throw new ConflictException("Ya existe una cuenta con ese correo");
+            throw new ConflictException("Ya existe una cuenta con ese correo", "email");
         }
 
         var user = Auth.builder()
@@ -126,7 +126,7 @@ public class AdminUserService {
     /** Valida que el rol sea asignable y devuelve la entidad Role correspondiente. */
     private Role resolveAssignableRole(RoleName roleName) {
         if (roleName == null || !ASSIGNABLE_ROLES.contains(roleName)) {
-            throw new BadRequestException("El rol debe ser RECEPCIONISTA o ADMINISTRADOR");
+            throw new BadRequestException("El rol debe ser RECEPCIONISTA o ADMINISTRADOR", "role");
         }
         return roleRepository.findByName(roleName.name())
                 .orElseThrow(() -> new IllegalStateException("Rol " + roleName + " no encontrado."));

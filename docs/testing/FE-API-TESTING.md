@@ -25,8 +25,14 @@ se rompe antes de tocar la UI.
 | POST | `/reservations/{id}/check-in` | interno | — | `ReservationDTO` |
 | POST | `/reservations/{id}/check-out` | interno | — | `ReservationDTO` |
 | GET | `/reservations/today` | interno | — | `{ check_ins, check_outs }` |
+| GET | `/users?role=&active=&search=&page=&size=` | admin | — | `PageResponse<AdminUser>` |
+| POST | `/users` | admin | `{ name, last_name, email, phone?, password, role }` | `201` + `AdminUser` |
+| PUT | `/users/{id}` | admin | `{ name, last_name, phone?, role }` | `AdminUser` |
+| PATCH | `/users/{id}/active` | admin | `{ active }` | `AdminUser` |
 
 - **"interno"** = rol `RECEPCIONISTA` o `ADMINISTRADOR` (requiere `Authorization: Bearer <token>`).
+- **"admin"** = solo rol `ADMINISTRADOR`. Los tests del panel admin están en
+  [E4-ADMIN.md § 8.3](../modulos/E4-ADMIN.md#83-pruebas-automatizadas-desde-el-frontend).
 - El JSON viaja en **snake_case** (`room_id`, `check_in`, `can_edit`, `created_at`, ...).
 - `ReservationDTO.status` transiciona: `PENDIENTE → CONFIRMADA → CHECK_IN → CHECK_OUT`.
 
@@ -99,7 +105,7 @@ export async function login(email: string, password: string): Promise<string> {
 import { describe, it, expect, beforeAll } from "vitest";
 import { api, login } from "./client";
 
-// Credenciales del seed (ajústalas a las tuyas)
+// Credenciales del seed: RECEPCIONISTA en V4, ADMINISTRADOR (admin@hmap.com / admin123) en V5
 const RECEPTION = { email: "recepcion@hmap.com", password: "recepcion123" };
 const GUEST = { email: process.env.GUEST_EMAIL!, password: process.env.GUEST_PASSWORD! };
 

@@ -69,7 +69,7 @@ public class AuthService {
     @Transactional
     public TokenDTO register(RegisterRequest request) {
         if (authRepository.existsByEmail(request.email())) {
-            throw new BadRequestException("Ya existe una cuenta con ese correo");
+            throw new BadRequestException("Ya existe una cuenta con ese correo", "email");
         }
 
         var clienteRole = roleRepository.findByName(RoleName.CLIENTE.name())
@@ -145,7 +145,7 @@ public class AuthService {
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new BadRequestException("La contraseña actual no es correcta");
+            throw new BadRequestException("La contraseña actual no es correcta", "current_password");
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));

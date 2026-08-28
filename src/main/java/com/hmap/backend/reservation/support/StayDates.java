@@ -18,13 +18,13 @@ public final class StayDates {
      */
     public static void validate(LocalDate checkIn, LocalDate checkOut) {
         if (checkIn == null || checkOut == null) {
-            throw new BadRequestException("Las fechas de entrada y salida son obligatorias");
+            throw new BadRequestException("Las fechas de entrada y salida son obligatorias", "check_in");
         }
         if (checkIn.isBefore(LocalDate.now())) {
-            throw new BadRequestException("La fecha de entrada no puede ser anterior a hoy");
+            throw new BadRequestException("La fecha de entrada no puede ser anterior a hoy", "check_in");
         }
         if (!checkOut.isAfter(checkIn)) {
-            throw new BadRequestException("La fecha de salida debe ser posterior a la de entrada");
+            throw new BadRequestException("La fecha de salida debe ser posterior a la de entrada", "check_out");
         }
     }
 }

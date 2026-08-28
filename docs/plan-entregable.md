@@ -24,7 +24,8 @@ Convención: ver contrato de endpoints en [api-contrato.md](./api-contrato.md).
 
 El corazón del sistema: el cliente puede buscar disponibilidad, reservar y gestionar sus reservas. Incluye la base de datos de habitaciones (necesaria para calcular disponibilidad) aunque su CRUD administrativo llega en el Entregable 3.
 
-> **Estado:** API ✅ completada (ver [E2-RESERVAS.md](modulos/E2-RESERVAS.md)) · FE pendiente.
+> **Estado:** API ✅ completada (ver [E2-RESERVAS.md](modulos/E2-RESERVAS.md)) · FE ✅ completado
+> (panel cliente, buscador compartido, flujo de reserva y gestión de reservas propias).
 
 | Área | Alcance |
 |---|---|
@@ -45,6 +46,9 @@ El corazón del sistema: el cliente puede buscar disponibilidad, reservar y gest
 
 Operación interna diaria: ocupación, calendario, check-in/out, reservas manuales y mantenimiento del inventario de habitaciones.
 
+> **Estado:** API ✅ completada (ver [E3-RECEPCION.md](modulos/E3-RECEPCION.md)) · FE ✅ completado
+> (rama `feat/v3-reception`: layout interno, ocupación, calendario, check-in/out, reservas e inventario).
+
 | Área | Alcance |
 |---|---|
 | **FE** | Layout del panel interno (compartible con el panel admin del E4). Dashboard de ocupación en tiempo real. Calendario de reservas (mensual/diario). Lista de check-ins/check-outs del día + registro de check-in/out. Tabla global de reservas con búsqueda y filtros; crear/editar/cancelar reserva manual. CRUD de habitaciones y cambio de estado (disponible/ocupada/mantenimiento). |
@@ -61,6 +65,11 @@ Operación interna diaria: ocupación, calendario, check-in/out, reservas manual
 ## Entregable 4 — Panel de Administrador + Cierre
 
 Gestión de usuarios internos, control de acceso por roles consolidado y cierre de calidad del sistema completo.
+
+> **Estado:** API ✅ completada (ver [E4-ADMIN.md](modulos/E4-ADMIN.md)) · FE ⏳ pendiente —
+> es el **único frente de trabajo abierto** del proyecto: falta el módulo `features/admin`
+> y las rutas `/panel-admin/**`. Contrato listo para consumir en
+> [E4-ADMIN.md § 4](modulos/E4-ADMIN.md#4-contrato-de-datos-json-para-el-frontend).
 
 | Área | Alcance |
 |---|---|
@@ -79,10 +88,25 @@ Gestión de usuarios internos, control de acceso por roles consolidado y cierre 
 | Entregable | HU | RF | Estado |
 |---|---|---|---|
 | E1 — Público + Auth | 001–006, 038 | 001–005 | ✅ Completado |
-| E2 — Portal Cliente + Reservas | 007–015, 035, 036 | 006–010, 016* | API ✅ / FE pendiente |
-| E3 — Panel Recepcionista | 016–029, 037 | 011–014, 016* | Pendiente |
-| E4 — Panel Admin + Cierre | 030–034 | 015 | Pendiente |
+| E2 — Portal Cliente + Reservas | 007–015, 035, 036 | 006–010, 016* | ✅ Completado (API + FE) |
+| E3 — Panel Recepcionista | 016–029, 037 | 011–014, 016* | ✅ Completado (API + FE) |
+| E4 — Panel Admin + Cierre | 030–034 | 015 | API ✅ / **FE pendiente** |
 
 \* RF-016 (notificaciones por correo) se reparte: cada entregable implementa los correos de sus propios flujos.
 
 **Total: 38 HU / 16 RF — todas cubiertas.**
+
+---
+
+## Estado actual y trabajo restante
+
+La **API está cerrada**: los cuatro entregables están implementados y con 74 tests
+unitarios en verde. Lo que queda es frontend y cierre.
+
+| Pendiente | Dónde | Detalle |
+|---|---|---|
+| Panel admin (HU-030 → HU-034) | FE | Módulo `features/admin` + rutas `/panel-admin/**` con guarda `ADMINISTRADOR`. Contrato en [E4-ADMIN.md § 4](modulos/E4-ADMIN.md#4-contrato-de-datos-json-para-el-frontend). |
+| Tests E2E de admin | FE | `e2e/admin.spec.ts` los tiene comentados esperando la UI. |
+| Tests de API de admin | FE | Crear `tests/api/admin-users.test.ts` ([E4-ADMIN.md § 8](modulos/E4-ADMIN.md#8-pruebas-automatizadas-desde-el-frontend)). |
+| Pulido responsive/usabilidad | FE | RNF-002 y RNF-003, transversal a los tres paneles. |
+| Cierre de versión | API | Tag `v4-entregable` y merge de `fea/admin-v4` → `main`. |

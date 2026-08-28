@@ -11,12 +11,12 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hmap.backend.auth.entity.Auth;
+import com.hmap.backend.common.dto.PageRequests;
 import com.hmap.backend.common.dto.PageResponse;
 import com.hmap.backend.exception.BadRequestException;
 import com.hmap.backend.exception.ConflictException;
@@ -180,7 +180,7 @@ public class ReservationService {
 
         if (internal) {
             if (request == null || request.reason() == null || request.reason().isBlank()) {
-                throw new BadRequestException("El motivo de la cancelación es obligatorio");
+                throw new BadRequestException("El motivo de la cancelación es obligatorio", "reason");
             }
             if (!reservation.getStatus().isActive()) {
                 throw new ConflictException("La reserva ya no puede cancelarse");
@@ -267,7 +267,7 @@ public class ReservationService {
     public PageResponse<ReservationDTO> search(String search, LocalDate from, LocalDate to,
                                                ReservationStatus status, int page, int size) {
         var normalizedSearch = (search == null || search.isBlank()) ? null : search.trim();
-        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        var pageable = PageRequests.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         var result = reservationRepository.search(
                 normalizedSearch, parseSearchId(normalizedSearch), from, to, status, pageable);
@@ -336,7 +336,7 @@ public class ReservationService {
         }
         if (guests > room.getCapacity()) {
             throw new BadRequestException(
-                    "La habitación admite hasta %d huéspedes".formatted(room.getCapacity()));
+                    "La habitación admite hasta %d huéspedes".formatted(room.getCapacity()), "guests");
         }
     }
 
@@ -344,7 +344,7 @@ public class ReservationService {
     private void ensureRangeAvailable(Room room, LocalDate checkIn, LocalDate checkOut, Long excludeId) {
         if (reservationRepository.existsOverlapping(room.getId(), checkIn, checkOut,
                 RoomService.BLOCKING_STATUSES, excludeId)) {
-            throw new ConflictException("La habitación ya no está disponible en esas fechas.");
+            throw new ConflictException("La habitación ya no está disponible en esas fechas.", "check_in");
         }
     }
 

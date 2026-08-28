@@ -3,11 +3,14 @@ package com.hmap.backend.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import com.hmap.backend.auth.entity.Auth;
 import com.hmap.backend.auth.repository.AuthRepository;
@@ -80,7 +85,9 @@ class AdminUserServiceTest {
         when(authRepository.existsByEmail("ana@hmap.com")).thenReturn(true);
 
         assertThatThrownBy(() -> adminUserService.create(request))
-                .isInstanceOf(ConflictException.class);
+                .isInstanceOf(ConflictException.class)
+                // El campo permite al FE anclar el error al input del correo.
+                .extracting(e -> ((ConflictException) e).getField()).isEqualTo("email");
         verify(authRepository, never()).save(any());
     }
 
@@ -90,7 +97,8 @@ class AdminUserServiceTest {
                 "secret123", RoleName.CLIENTE);
 
         assertThatThrownBy(() -> adminUserService.create(request))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOf(BadRequestException.class)
+                .extracting(e -> ((BadRequestException) e).getField()).isEqualTo("role");
         verify(authRepository, never()).save(any());
     }
 
@@ -141,7 +149,9 @@ class AdminUserServiceTest {
         when(authRepository.findById(1L)).thenReturn(Optional.of(admin));
 
         assertThatThrownBy(() -> adminUserService.setActive(1L, 1L, false))
-                .isInstanceOf(ConflictException.class);
+                .isInstanceOf(ConflictException.class)
+                // Sin campo: la autoprotección no pertenece a ningún input, va como aviso.
+                .extracting(e -> ((ConflictException) e).getField()).isNull();
         verify(authRepository, never()).save(any());
     }
 
@@ -165,5 +175,34 @@ class AdminUserServiceTest {
 
         assertThat(result.active()).isTrue();
         verify(authRepository).save(admin);
+    }
+
+    // === list: validación de paginación ===
+
+    @Test
+    void list_conPaginaNegativa_lanzaBadRequest() {
+        assertThatThrownBy(() -> adminUserService.list(null, null, null, -1, 20))
+                .isInstanceOf(BadRequestException.class);
+        verify(authRepository, never()).searchUsers(any(), any(), any(), any());
+    }
+
+    @Test
+    void list_conTamanoFueraDeRango_lanzaBadRequest() {
+        assertThatThrownBy(() -> adminUserService.list(null, null, null, 0, 0))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> adminUserService.list(null, null, null, 0, 101))
+                .isInstanceOf(BadRequestException.class);
+        verify(authRepository, never()).searchUsers(any(), any(), any(), any());
+    }
+
+    @Test
+    void list_normalizaBusquedaEnBlancoANull() {
+        when(authRepository.searchUsers(eq("RECEPCIONISTA"), eq(true), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user(2L, RoleName.RECEPCIONISTA, true))));
+
+        var result = adminUserService.list(RoleName.RECEPCIONISTA, true, "   ", 0, 20);
+
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.totalElements()).isEqualTo(1);
     }
 }
