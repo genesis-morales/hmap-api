@@ -155,7 +155,9 @@ class RoomServiceTest {
         when(roomRepository.existsBySlug("nueva-hab")).thenReturn(true);
 
         assertThatThrownBy(() -> roomService.create(request))
-                .isInstanceOf(ConflictException.class);
+                .isInstanceOf(ConflictException.class)
+                // El campo permite al FE anclar el error al input del slug.
+                .extracting(e -> ((ConflictException) e).getField()).isEqualTo("slug");
         verify(roomRepository, never()).save(any());
     }
 
@@ -181,7 +183,8 @@ class RoomServiceTest {
         when(roomRepository.existsBySlugAndIdNot("nueva-hab", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> roomService.update(1L, request))
-                .isInstanceOf(ConflictException.class);
+                .isInstanceOf(ConflictException.class)
+                .extracting(e -> ((ConflictException) e).getField()).isEqualTo("slug");
     }
 
     @Test
