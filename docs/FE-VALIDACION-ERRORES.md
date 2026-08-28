@@ -1,5 +1,8 @@
 # Anclaje de errores de validación en el frontend
 
+**Actualización**: el backend agregó el campo `type` (`ONLINE` | `MANUAL`) a las
+reservas para distinguir su origen. Ver sección 10 al final del documento.
+
 Los errores de la API ahora distinguen entre **errores atribuibles a un campo** (que
 deben pintarse debajo del input correspondiente) y **avisos globales** (que van al
 toast). Este documento describe el contrato final, el helper a reutilizar en cada
@@ -334,3 +337,56 @@ van en `snake_case`. El helper `applyApiError` decide entre anclar y notificar. 
 12 formularios listados deben adoptar ese helper en su `catch`. El login se queda con
 el toast. La autoprotección del admin debe prevenirse en la UI deshabilitando el
 botón.
+
+---
+
+## 10. Nuevo campo: tipo de reserva (`type`)
+
+El backend agregó el campo `type` a `ReservationDTO` para distinguir el origen de
+cada reserva:
+
+```typescript
+interface ReservationDTO {
+  // ... campos existentes ...
+  type: 'ONLINE' | 'MANUAL'       // nuevo campo
+  // ... resto de campos ...
+}
+```
+
+### Significado
+
+- **`ONLINE`**: el cliente creó la reserva desde el portal público (HU-009). Todas
+  las reservas existentes se marcaron como `ONLINE` en la migración.
+- **`MANUAL`**: un recepcionista o administrador creó la reserva desde el panel
+  interno (HU-020).
+
+### Uso en el frontend
+
+**Panel de recepción** (`src/features/reception/pages/ReservationsPage/ReservationsPage.tsx`):
+
+Agregar una columna `Origen` o `Tipo` a la tabla de reservas que muestre:
+- `ONLINE` → badge o texto "En línea" / "Portal público"
+- `MANUAL` → badge o texto "Manual" / "Panel interno"
+
+Esto permite al recepcionista identificar de un vistazo qué reservas fueron hechas
+por clientes y cuáles fueron creadas internamente.
+
+**Sugerencia de implementación**:
+
+```tsx
+{
+  title: 'Origen',
+  dataIndex: 'type',
+  key: 'type',
+  width: 120,
+  render: (type: 'ONLINE' | 'MANUAL') => (
+    <Tag color={type === 'ONLINE' ? 'blue' : 'green'}>
+      {type === 'ONLINE' ? 'En línea' : 'Manual'}
+    </Tag>
+  ),
+}
+```
+
+No se requiere filtro por tipo en MVP; el campo es solo informativo. Si el supervisor
+lo solicita más adelante, agregar `&type=ONLINE` o `&type=MANUAL` a la query del
+`GET /reservations`.
