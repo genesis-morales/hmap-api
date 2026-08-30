@@ -1,6 +1,16 @@
 HELP.md
 target/
 
+### Solo local (no se versiona) ###
+docs/
+tree.md
+.claude/
+
+### Maven wrapper (se usa en local; requiere mvn instalado al clonar) ###
+.mvn/
+mvnw
+mvnw.cmd
+
 ### Secrets / entorno ###
 .env
 .env.*
