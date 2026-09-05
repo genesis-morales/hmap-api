@@ -86,6 +86,9 @@ public class RoomService {
         if (roomRepository.existsBySlug(request.slug())) {
             throw new ConflictException("Ya existe una habitación con ese slug", "slug");
         }
+        if (roomRepository.existsByRoomNumber(request.roomNumber())) {
+            throw new ConflictException("Ya existe una habitación con ese número", "room_number");
+        }
 
         // builder().build() inicializa las colecciones (@Builder.Default) como listas
         // mutables, necesarias para replaceCollection().
@@ -104,6 +107,9 @@ public class RoomService {
 
         if (roomRepository.existsBySlugAndIdNot(request.slug(), id)) {
             throw new ConflictException("Ya existe una habitación con ese slug", "slug");
+        }
+        if (roomRepository.existsByRoomNumberAndIdNot(request.roomNumber(), id)) {
+            throw new ConflictException("Ya existe una habitación con ese número", "room_number");
         }
 
         applyRequest(room, request);
@@ -147,6 +153,7 @@ public class RoomService {
     /** Copia los campos escalares y las colecciones del request a la entidad. */
     private void applyRequest(Room room, RoomRequest request) {
         room.setSlug(request.slug());
+        room.setRoomNumber(request.roomNumber());
         room.setName(request.name());
         room.setDescription(request.description());
         room.setCapacity(request.capacity());
