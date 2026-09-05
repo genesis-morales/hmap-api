@@ -63,6 +63,14 @@ public class Auth implements UserDetails {
     @Column(nullable = false)
     private boolean active;
 
+    /**
+     * Observación con la que el administrador justifica la desactivación de la
+     * cuenta (HU-033). Nulo mientras la cuenta está activa: se exige al
+     * desactivar y se limpia al reactivar.
+     */
+    @Column(name = "deactivation_reason", length = 300)
+    private String deactivationReason;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
