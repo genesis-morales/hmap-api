@@ -22,6 +22,11 @@ public record RoomRequest(
         @Size(max = 80, message = "El slug no puede superar los 80 caracteres")
         String slug,
 
+        @JsonProperty("room_number")
+        @NotBlank(message = "El número de habitación es obligatorio")
+        @Size(max = 10, message = "El número de habitación no puede superar los 10 caracteres")
+        String roomNumber,
+
         @NotBlank(message = "El nombre es obligatorio")
         @Size(max = 150, message = "El nombre no puede superar los 150 caracteres")
         String name,

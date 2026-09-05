@@ -148,7 +148,7 @@ class AdminUserServiceTest {
         var admin = user(1L, RoleName.ADMINISTRADOR, true);
         when(authRepository.findById(1L)).thenReturn(Optional.of(admin));
 
-        assertThatThrownBy(() -> adminUserService.setActive(1L, 1L, false))
+        assertThatThrownBy(() -> adminUserService.setActive(1L, 1L, false, "Cese de funciones"))
                 .isInstanceOf(ConflictException.class)
                 // Sin campo: la autoprotección no pertenece a ningún input, va como aviso.
                 .extracting(e -> ((ConflictException) e).getField()).isNull();
@@ -156,24 +156,40 @@ class AdminUserServiceTest {
     }
 
     @Test
-    void setActive_suspendeAOtroUsuario_actualizaEstado() {
+    void setActive_suspendeAOtroUsuario_guardaLaObservacion() {
         var target = user(2L, RoleName.RECEPCIONISTA, true);
         when(authRepository.findById(2L)).thenReturn(Optional.of(target));
 
-        var result = adminUserService.setActive(1L, 2L, false);
+        var result = adminUserService.setActive(1L, 2L, false, "  Cese de funciones  ");
 
         assertThat(result.active()).isFalse();
+        // Se normaliza el espacio en blanco antes de persistir.
+        assertThat(result.deactivationReason()).isEqualTo("Cese de funciones");
         verify(authRepository).save(target);
     }
 
     @Test
-    void setActive_reactivaLaPropiaCuenta_esPermitido() {
+    void setActive_desactivaSinObservacion_lanzaBadRequest() {
+        var target = user(2L, RoleName.RECEPCIONISTA, true);
+        when(authRepository.findById(2L)).thenReturn(Optional.of(target));
+
+        assertThatThrownBy(() -> adminUserService.setActive(1L, 2L, false, "   "))
+                .isInstanceOf(BadRequestException.class)
+                // El campo permite al FE anclar el error al textarea del motivo.
+                .extracting(e -> ((BadRequestException) e).getField()).isEqualTo("observation");
+        verify(authRepository, never()).save(any());
+    }
+
+    @Test
+    void setActive_reactivaLaPropiaCuenta_limpiaElMotivo() {
         var admin = user(1L, RoleName.ADMINISTRADOR, false);
+        admin.setDeactivationReason("Suspensión anterior");
         when(authRepository.findById(1L)).thenReturn(Optional.of(admin));
 
-        var result = adminUserService.setActive(1L, 1L, true);
+        var result = adminUserService.setActive(1L, 1L, true, null);
 
         assertThat(result.active()).isTrue();
+        assertThat(result.deactivationReason()).isNull();
         verify(authRepository).save(admin);
     }
 

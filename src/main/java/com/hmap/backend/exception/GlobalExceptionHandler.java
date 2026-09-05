@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -68,6 +69,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
     public ProblemDetail handleBadParams(Exception ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Parámetros de búsqueda inválidos");
+    }
+
+    /**
+     * Login de una cuenta desactivada. Spring Security ya lo rechaza vía
+     * {@code Auth.isEnabled()}; este manejador solo sustituye el mensaje
+     * genérico de credenciales por uno que le dice al usuario qué pasó.
+     *
+     * <p>Se declara antes del manejador genérico de {@link AuthenticationException}
+     * para que Spring lo elija por ser el tipo más concreto.
+     *
+     * <p>403 y no 401: las credenciales eran correctas, lo que falta es permiso.
+     * El frontend no debe cerrar sesión ante este 403 (RNF-001). El motivo
+     * registrado por la administración no se expone aquí.
+     */
+    @ExceptionHandler(DisabledException.class)
+    public ProblemDetail handleDisabled(DisabledException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN,
+                "Estimado usuario, su cuenta se encuentra desactivada. "
+                + "En caso de consulta, comuníquese con la administración "
+                + "del Hotel Manuel Antonio Park.");
     }
 
     @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
