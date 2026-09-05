@@ -46,6 +46,14 @@ public class Room {
     @Column(nullable = false, unique = true, length = 80)
     private String slug;
 
+    /**
+     * Número físico de la habitación (el de la puerta). Segunda llave natural:
+     * dos habitaciones no pueden compartirlo. Es texto y no entero porque es un
+     * código, no una cantidad: admite formas como {@code 101-A} sin migrar.
+     */
+    @Column(name = "room_number", nullable = false, unique = true, length = 10)
+    private String roomNumber;
+
     @Column(nullable = false, length = 150)
     private String name;
 

@@ -8,7 +8,8 @@ import com.hmap.backend.auth.entity.Auth;
 /**
  * Usuario tal como lo consume el panel de administrador (HU-034). A diferencia
  * de {@link com.hmap.backend.auth.dto.UserDTO} (perfil propio en GET /auth/me),
- * expone {@code active} y {@code created_at} para la gestión de cuentas internas.
+ * expone {@code active}, {@code deactivation_reason} y {@code created_at} para
+ * la gestión de cuentas internas.
  */
 public record AdminUserDTO(
         Long id,
@@ -18,6 +19,7 @@ public record AdminUserDTO(
         String phone,
         String role,
         boolean active,
+        @JsonProperty("deactivation_reason") String deactivationReason,
         @JsonProperty("created_at") LocalDateTime createdAt
 ) {
 
@@ -30,6 +32,7 @@ public record AdminUserDTO(
                 user.getPhone(),
                 user.getRole().getName(),
                 user.isActive(),
+                user.getDeactivationReason(),
                 user.getCreatedAt()
         );
     }

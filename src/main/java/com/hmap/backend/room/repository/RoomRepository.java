@@ -25,6 +25,12 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     /** Unicidad del slug al editar, excluyendo la propia habitación (HU-026). */
     boolean existsBySlugAndIdNot(String slug, Long id);
 
+    /** Unicidad del número de habitación al crear (HU-025). */
+    boolean existsByRoomNumber(String roomNumber);
+
+    /** Unicidad del número de habitación al editar, excluyendo la propia (HU-026). */
+    boolean existsByRoomNumberAndIdNot(String roomNumber, Long id);
+
     /** Conteo de habitaciones por estado para el dashboard de ocupación (HU-016). */
     @Query("select r.status, count(r) from Room r group by r.status")
     List<Object[]> countGroupedByStatus();

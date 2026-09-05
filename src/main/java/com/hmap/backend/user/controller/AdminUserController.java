@@ -74,6 +74,7 @@ public class AdminUserController {
     public ResponseEntity<AdminUserDTO> setActive(@AuthenticationPrincipal Auth admin,
                                                   @PathVariable Long id,
                                                   @RequestBody @Valid UpdateUserActiveRequest request) {
-        return ResponseEntity.ok(adminUserService.setActive(admin.getId(), id, request.active()));
+        return ResponseEntity.ok(
+                adminUserService.setActive(admin.getId(), id, request.active(), request.observation()));
     }
 }

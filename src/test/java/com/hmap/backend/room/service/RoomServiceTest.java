@@ -41,6 +41,7 @@ class RoomServiceTest {
         return Room.builder()
                 .id(1L)
                 .slug("deluxe-cama-grande")
+                .roomNumber("102")
                 .name("Habitación Deluxe con cama extragrande")
                 .description("Una cama extragrande...")
                 .capacity(2)
@@ -122,7 +123,7 @@ class RoomServiceTest {
     // === inventario (HU-025 a HU-028) ===
 
     private RoomRequest buildRoomRequest(String slug, String status) {
-        return new RoomRequest(slug, "Nueva habitación", "Descripción", 2, 15, "1 cama doble",
+        return new RoomRequest(slug, "201", "Nueva habitación", "Descripción", 2, 15, "1 cama doble",
                 new BigDecimal("100.00"), "No se puede fumar", status,
                 List.of("hmap/rooms/nueva/bed"), List.of("Wifi"), List.of("Ducha"), List.of("Vistas al jardín"));
     }
@@ -130,7 +131,7 @@ class RoomServiceTest {
     /** Room con colecciones mutables (como las entrega Hibernate al cargar). */
     private Room buildMutableRoom() {
         return Room.builder()
-                .id(1L).slug("old-slug").name("Antigua").description("desc")
+                .id(1L).slug("old-slug").roomNumber("101").name("Antigua").description("desc")
                 .capacity(2).area(10).bedsLabel("1 cama").pricePerNight(new BigDecimal("90.00"))
                 .smokingPolicy("No se puede fumar").status(RoomStatus.DISPONIBLE)
                 .build();
@@ -162,6 +163,18 @@ class RoomServiceTest {
     }
 
     @Test
+    void create_numeroDeHabitacionDuplicado_lanzaConflict() {
+        var request = buildRoomRequest("nueva-hab", null);
+        when(roomRepository.existsBySlug("nueva-hab")).thenReturn(false);
+        when(roomRepository.existsByRoomNumber("201")).thenReturn(true);
+
+        assertThatThrownBy(() -> roomService.create(request))
+                .isInstanceOf(ConflictException.class)
+                .extracting(e -> ((ConflictException) e).getField()).isEqualTo("room_number");
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
     void update_habitacionExistente_actualizaCampos() {
         var existing = buildMutableRoom();
         var request = buildRoomRequest("nueva-hab", null);
@@ -172,6 +185,7 @@ class RoomServiceTest {
 
         assertThat(result.name()).isEqualTo("Nueva habitación");
         assertThat(result.slug()).isEqualTo("nueva-hab");
+        assertThat(result.roomNumber()).isEqualTo("201");
         verify(roomRepository).save(existing);
     }
 

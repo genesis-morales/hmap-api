@@ -108,6 +108,23 @@ class GlobalExceptionHandlerTest {
         assertThat(errorsOf(problem)).isNull();
     }
 
+    /**
+     * Cuenta desactivada: 403 con un mensaje propio, no el 401 genérico, para
+     * que el usuario no crea que erró la contraseña. El motivo interno de la
+     * suspensión no viaja en la respuesta.
+     */
+    @Test
+    void handleDisabled_respondeForbiddenConMensajePropio() {
+        var problem = handler.handleDisabled(
+                new org.springframework.security.authentication.DisabledException("User is disabled"));
+
+        assertThat(problem.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(problem.getDetail())
+                .contains("su cuenta se encuentra desactivada")
+                .contains("Hotel Manuel Antonio Park");
+        assertThat(errorsOf(problem)).isNull();
+    }
+
     private static MethodArgumentNotValidException validationError(FieldError... fieldErrors) throws Exception {
         var bindingResult = new BeanPropertyBindingResult(new Object(), "request");
         List.of(fieldErrors).forEach(bindingResult::addError);

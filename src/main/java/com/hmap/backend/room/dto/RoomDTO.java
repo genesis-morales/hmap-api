@@ -11,6 +11,7 @@ import java.util.List;
 public record RoomDTO(
         Long id,
         String slug,
+        @JsonProperty("room_number") String roomNumber,
         String name,
         String description,
         int capacity,
@@ -29,6 +30,7 @@ public record RoomDTO(
         return new RoomDTO(
                 room.getId(),
                 room.getSlug(),
+                room.getRoomNumber(),
                 room.getName(),
                 room.getDescription(),
                 room.getCapacity(),

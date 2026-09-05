@@ -108,14 +108,28 @@ public class AdminUserService {
     /**
      * Activa o suspende una cuenta (HU-033). Un administrador no puede
      * desactivar su propia cuenta para no quedarse sin acceso.
+     *
+     * <p>Al desactivar, la observación es obligatoria: el administrador debe
+     * justificar la medida. Al reactivar se limpia, porque describe una
+     * suspensión que ya no está vigente.
      */
     @Transactional
-    public AdminUserDTO setActive(Long adminId, Long id, boolean active) {
+    public AdminUserDTO setActive(Long adminId, Long id, boolean active, String observation) {
         var user = authRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         if (user.getId().equals(adminId) && !active) {
             throw new ConflictException("No puedes desactivar tu propia cuenta");
+        }
+
+        if (active) {
+            user.setDeactivationReason(null);
+        } else {
+            if (observation == null || observation.isBlank()) {
+                throw new BadRequestException(
+                        "Debes indicar el motivo de la desactivación", "observation");
+            }
+            user.setDeactivationReason(observation.trim());
         }
 
         user.setActive(active);
