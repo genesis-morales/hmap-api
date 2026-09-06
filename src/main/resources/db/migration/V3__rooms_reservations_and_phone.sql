@@ -5,11 +5,11 @@
 
 -- 1. Teléfono de contacto del usuario (HU-014)
 ALTER TABLE users
-    ADD COLUMN phone VARCHAR(30) NULL AFTER email;
+    ADD COLUMN phone VARCHAR(30) NULL;
 
 -- 2. Habitaciones
 CREATE TABLE rooms (
-    id              BIGINT        NOT NULL AUTO_INCREMENT,
+    id              BIGSERIAL     NOT NULL,
     slug            VARCHAR(80)   NOT NULL,
     name            VARCHAR(150)  NOT NULL,
     description     TEXT          NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE rooms (
     price_per_night DECIMAL(10,2) NOT NULL,
     smoking_policy  VARCHAR(120)  NOT NULL,
     status          VARCHAR(20)   NOT NULL DEFAULT 'DISPONIBLE',
-    created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_rooms PRIMARY KEY (id),
     CONSTRAINT uk_rooms_slug UNIQUE (slug)
 );
@@ -59,7 +59,7 @@ CREATE TABLE room_views (
 
 -- 4. Reservas
 CREATE TABLE reservations (
-    id         BIGINT        NOT NULL AUTO_INCREMENT,
+    id         BIGSERIAL     NOT NULL,
     user_id    BIGINT        NOT NULL,
     room_id    BIGINT        NOT NULL,
     check_in   DATE          NOT NULL,
@@ -67,8 +67,8 @@ CREATE TABLE reservations (
     guests     INT           NOT NULL,
     total      DECIMAL(10,2) NOT NULL,
     status     VARCHAR(20)   NOT NULL DEFAULT 'PENDIENTE',
-    created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME      NULL,
+    created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP     NULL,
     CONSTRAINT pk_reservations PRIMARY KEY (id),
     CONSTRAINT fk_reservations_user FOREIGN KEY (user_id) REFERENCES users (id),
     CONSTRAINT fk_reservations_room FOREIGN KEY (room_id) REFERENCES rooms (id),
