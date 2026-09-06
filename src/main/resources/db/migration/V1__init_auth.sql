@@ -4,7 +4,7 @@
 
 -- Roles del sistema
 CREATE TABLE roles (
-    id   BIGINT       NOT NULL AUTO_INCREMENT,
+    id   BIGSERIAL    NOT NULL,
     name VARCHAR(20)  NOT NULL,
     CONSTRAINT pk_roles PRIMARY KEY (id),
     CONSTRAINT uk_roles_name UNIQUE (name)
@@ -17,13 +17,13 @@ INSERT INTO roles (name) VALUES
 
 -- Usuarios / cuentas
 CREATE TABLE users (
-    id         BIGINT        NOT NULL AUTO_INCREMENT,
+    id         BIGSERIAL     NOT NULL,
     name       VARCHAR(120)  NOT NULL,
     email      VARCHAR(150)  NOT NULL,
     password   VARCHAR(255)  NOT NULL,
     role_id    BIGINT        NOT NULL,
     active     BOOLEAN       NOT NULL DEFAULT TRUE,
-    created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uk_users_email UNIQUE (email),
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles (id)
@@ -31,10 +31,10 @@ CREATE TABLE users (
 
 -- Tokens de recuperación de contraseña
 CREATE TABLE password_reset_tokens (
-    id         BIGINT        NOT NULL AUTO_INCREMENT,
+    id         BIGSERIAL     NOT NULL,
     token      VARCHAR(255)  NOT NULL,
     user_id    BIGINT        NOT NULL,
-    expires_at DATETIME      NOT NULL,
+    expires_at TIMESTAMP     NOT NULL,
     used       BOOLEAN       NOT NULL DEFAULT FALSE,
     CONSTRAINT pk_password_reset_tokens PRIMARY KEY (id),
     CONSTRAINT uk_password_reset_tokens_token UNIQUE (token),
