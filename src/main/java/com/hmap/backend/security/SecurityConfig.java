@@ -35,6 +35,7 @@ public class SecurityConfig {
             "/auth/register",
             "/auth/forgot-password",
             "/auth/reset-password",
+            "/actuator/health",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
@@ -69,7 +70,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Permitir localhost (desarrollo) y Vercel (producción)
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173",
+            "https://*.vercel.app"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         // El JWT viaja en el header Authorization, no en cookies -> no se requieren credenciales
