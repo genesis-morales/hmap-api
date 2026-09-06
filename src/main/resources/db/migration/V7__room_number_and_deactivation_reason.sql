@@ -7,14 +7,14 @@
 --    aplican NOT NULL y UNIQUE.
 
 ALTER TABLE rooms
-    ADD COLUMN room_number VARCHAR(10) NULL AFTER slug;
+    ADD COLUMN room_number VARCHAR(10) NULL;
 
 UPDATE rooms SET room_number = '101' WHERE slug = 'cuadruple-estandar';
 UPDATE rooms SET room_number = '102' WHERE slug = 'deluxe-cama-grande';
 UPDATE rooms SET room_number = '103' WHERE slug = 'cuadruple-deluxe';
 
 ALTER TABLE rooms
-    MODIFY COLUMN room_number VARCHAR(10) NOT NULL,
+    ALTER COLUMN room_number SET NOT NULL,
     ADD CONSTRAINT uk_rooms_room_number UNIQUE (room_number);
 
 -- 2. users.deactivation_reason
@@ -22,4 +22,4 @@ ALTER TABLE rooms
 --    desactivada. Al reactivar se limpia a NULL.
 
 ALTER TABLE users
-    ADD COLUMN deactivation_reason VARCHAR(300) NULL AFTER active;
+    ADD COLUMN deactivation_reason VARCHAR(300) NULL;
