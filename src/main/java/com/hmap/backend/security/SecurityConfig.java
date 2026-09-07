@@ -73,7 +73,8 @@ public class SecurityConfig {
         // Permitir localhost (desarrollo) y Vercel (producción)
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:5173",
-            "https://*.vercel.app"
+            "https://*.vercel.app",
+            "https://hmap-front.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
