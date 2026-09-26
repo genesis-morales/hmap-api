@@ -70,16 +70,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Permitir localhost (desarrollo) y Vercel (producción)
+        // Permitir localhost (desarrollo), Vercel (producción) y Render
         config.setAllowedOriginPatterns(List.of(
-            "http://localhost:5173",
-            "https://*.vercel.app",
-            "https://hmap-front.vercel.app"
+            "http://localhost:*",
+            "hmap-front.vercel.app",
+            "https://hmap-api.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        // El JWT viaja en el header Authorization, no en cookies -> no se requieren credenciales
-        config.setAllowCredentials(false);
+        config.setExposedHeaders(List.of("Authorization"));
+        // Permitir credenciales para que funcione Authorization header
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
