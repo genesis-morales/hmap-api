@@ -84,6 +84,9 @@ public class Reservation {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "cancellation_reason", columnDefinition = "TEXT")
+    private String cancellationReason;
+
     /** Noches de la estancia, derivadas del rango de fechas. */
     public long getNights() {
         return ChronoUnit.DAYS.between(checkIn, checkOut);
