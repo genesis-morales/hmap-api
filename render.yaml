@@ -1,9 +1,38 @@
 services:
   - type: web
     name: hmap-api
-    runtime: java
-    buildCommand: mvn clean install -DskipTests
-    startCommand: java -jar target/hmap-0.0.1-SNAPSHOT.jar
+    runtime: docker
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
     envVars:
-      - key: JAVA_VERSION
-        value: 17
+      - key: SPRING_PROFILE
+        value: prod
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        value: no-reply@hmap.com
+      - key: FRONTEND_RESET_URL
+        value: https://hmap-front.vercel.app/reset-password
+      - key: IMAGES_BASE_URL
+        sync: false
+      - key: RESERVATION_EDIT_WINDOW_HOURS
+        value: 48
+      - key: RESET_TOKEN_MINUTES
+        value: 30

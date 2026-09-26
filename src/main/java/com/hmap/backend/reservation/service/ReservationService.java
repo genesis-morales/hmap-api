@@ -192,6 +192,10 @@ public class ReservationService {
         }
 
         reservation.setStatus(ReservationStatus.CANCELADA);
+        // Almacenar el motivo si se proporcionó (obligatorio para interno, opcional para cliente)
+        if (request != null && request.reason() != null && !request.reason().isBlank()) {
+            reservation.setCancellationReason(request.reason().trim());
+        }
         reservationRepository.save(reservation);
         sendCancellationEmail(reservation);
 

@@ -14,6 +14,7 @@ import com.hmap.backend.room.support.ImageUrlResolver;
  * {@code can_edit}/{@code can_cancel} los calcula la API según la política
  * de plazos; el {@code code} se deriva del id (RSV-000123). El {@code type}
  * indica si fue creada en línea (portal público) o manualmente (panel interno).
+ * El {@code cancellation_reason} solo está presente cuando la reserva fue cancelada.
  */
 public record ReservationDTO(
         Long id,
@@ -29,7 +30,8 @@ public record ReservationDTO(
         String type,
         @JsonProperty("can_edit") boolean canEdit,
         @JsonProperty("can_cancel") boolean canCancel,
-        @JsonProperty("created_at") LocalDateTime createdAt
+        @JsonProperty("created_at") LocalDateTime createdAt,
+        @JsonProperty("cancellation_reason") String cancellationReason
 ) {
 
     public static ReservationDTO from(Reservation reservation, boolean canEdit, boolean canCancel,
@@ -48,7 +50,8 @@ public record ReservationDTO(
                 reservation.getType().name(),
                 canEdit,
                 canCancel,
-                reservation.getCreatedAt()
+                reservation.getCreatedAt(),
+                reservation.getCancellationReason()
         );
     }
 }

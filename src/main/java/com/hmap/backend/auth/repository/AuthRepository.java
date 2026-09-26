@@ -25,7 +25,7 @@ public interface AuthRepository extends JpaRepository<Auth, Long> {
             select a from Auth a
             where (:role is null or a.role.name = :role)
               and (:active is null or a.active = :active)
-              and (:search is null
+              and (coalesce(:search, '') = ''
                    or lower(a.name) like lower(concat('%', :search, '%'))
                    or lower(a.lastName) like lower(concat('%', :search, '%'))
                    or lower(a.email) like lower(concat('%', :search, '%')))
