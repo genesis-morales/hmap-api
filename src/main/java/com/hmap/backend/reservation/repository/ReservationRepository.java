@@ -84,7 +84,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             where (:status is null or r.status = :status)
               and (:from is null or r.checkIn >= :from)
               and (:to is null or r.checkOut <= :to)
-              and (:search is null
+              and (coalesce(:search, '') = ''
                    or lower(r.user.name) like lower(concat('%', :search, '%'))
                    or lower(r.user.lastName) like lower(concat('%', :search, '%'))
                    or lower(r.user.email) like lower(concat('%', :search, '%'))
