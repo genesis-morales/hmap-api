@@ -1,0 +1,4 @@
+# Forzar rebuild en Render
+# Este archivo dummy fuerza a Render a invalidar el cache de Docker
+# Fecha: 2026-09-26 23:05
+REBUILD=true
