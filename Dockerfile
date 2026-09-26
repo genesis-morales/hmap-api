@@ -6,15 +6,15 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Copy source code and build
+# Copy source code and build executable JAR
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests spring-boot:repackage
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the JAR from build stage (usa wildcard para evitar hardcodear el nombre)
+# Copy the executable JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose port (Render asigna PORT automáticamente)
