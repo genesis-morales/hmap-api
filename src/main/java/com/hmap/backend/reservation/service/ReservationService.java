@@ -104,6 +104,12 @@ public class ReservationService {
         validateRoomAndCapacity(room, request.guests());
         ensureRangeAvailable(room, request.checkIn(), request.checkOut(), null);
 
+        // Prevenir duplicados por doble-clic o reintentos después de timeout
+        if (reservationRepository.existsByUserIdAndRoomIdAndCheckInAndStatus(
+                user.getId(), room.getId(), request.checkIn(), INITIAL_STATUS)) {
+            throw new ConflictException("Ya tienes una reserva pendiente para esta habitación en estas fechas");
+        }
+
         var reservation = Reservation.builder()
                 .user(user)
                 .room(room)
@@ -116,7 +122,7 @@ public class ReservationService {
                 .build();
 
         reservationRepository.save(reservation);
-        sendConfirmationEmail(reservation);
+        mailService.sendReservationConfirmationEmailAsync(reservation);
 
         return toDto(reservation);
     }
@@ -197,7 +203,7 @@ public class ReservationService {
             reservation.setCancellationReason(request.reason().trim());
         }
         reservationRepository.save(reservation);
-        sendCancellationEmail(reservation);
+        mailService.sendReservationCancellationEmailAsync(reservation);
 
         return toDto(reservation);
     }
@@ -311,7 +317,7 @@ public class ReservationService {
                 .build();
 
         reservationRepository.save(reservation);
-        sendManualReservationEmail(reservation, provisioned.temporaryPassword());
+        mailService.sendManualReservationEmailAsync(reservation, provisioned.temporaryPassword());
 
         return toDto(reservation);
     }
@@ -389,62 +395,5 @@ public class ReservationService {
     private ReservationDTO toDto(Reservation reservation) {
         boolean editable = isWithinEditWindow(reservation);
         return ReservationDTO.from(reservation, editable, editable, imageUrlResolver);
-    }
-
-    // === Correos (best-effort: un fallo de SMTP no debe romper la operación) ===
-
-    private void sendConfirmationEmail(Reservation reservation) {
-        var guest = reservation.getUser();
-        try {
-            mailService.sendReservationConfirmationEmail(
-                    guest.getEmail(),
-                    guest.getName(),
-                    "RSV-%06d".formatted(reservation.getId()),
-                    reservation.getRoom().getName(),
-                    reservation.getCheckIn(),
-                    reservation.getCheckOut(),
-                    reservation.getGuests(),
-                    reservation.getNights(),
-                    reservation.getTotal());
-        } catch (Exception e) {
-            log.warn("No se pudo enviar el correo de confirmación de la reserva {}: {}",
-                    reservation.getId(), e.getMessage());
-        }
-    }
-
-    private void sendManualReservationEmail(Reservation reservation, String temporaryPassword) {
-        var guest = reservation.getUser();
-        try {
-            mailService.sendManualReservationEmail(
-                    guest.getEmail(),
-                    guest.getName(),
-                    "RSV-%06d".formatted(reservation.getId()),
-                    reservation.getRoom().getName(),
-                    reservation.getCheckIn(),
-                    reservation.getCheckOut(),
-                    reservation.getGuests(),
-                    reservation.getNights(),
-                    reservation.getTotal(),
-                    temporaryPassword);
-        } catch (Exception e) {
-            log.warn("No se pudo enviar el correo de la reserva manual {}: {}",
-                    reservation.getId(), e.getMessage());
-        }
-    }
-
-    private void sendCancellationEmail(Reservation reservation) {
-        var guest = reservation.getUser();
-        try {
-            mailService.sendReservationCancellationEmail(
-                    guest.getEmail(),
-                    guest.getName(),
-                    "RSV-%06d".formatted(reservation.getId()),
-                    reservation.getRoom().getName(),
-                    reservation.getCheckIn(),
-                    reservation.getCheckOut());
-        } catch (Exception e) {
-            log.warn("No se pudo enviar el correo de cancelación de la reserva {}: {}",
-                    reservation.getId(), e.getMessage());
-        }
     }
 }

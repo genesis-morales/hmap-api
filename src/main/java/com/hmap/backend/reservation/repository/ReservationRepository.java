@@ -46,6 +46,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     /** ¿La habitación tiene reservas que la bloquean? (regla de no eliminar, HU-027). */
     boolean existsByRoomIdAndStatusIn(Long roomId, Collection<ReservationStatus> statuses);
 
+    /**
+     * Valida si ya existe una reserva pendiente para evitar duplicados por doble-clic.
+     * Usado en la creación de reservas para prevenir timeouts que generen datos duplicados.
+     */
+    boolean existsByUserIdAndRoomIdAndCheckInAndStatus(Long userId, Long roomId,
+                                                       LocalDate checkIn, ReservationStatus status);
+
     // === Panel de recepción (E3) ===
 
     /** Entradas programadas para una fecha (check-ins del día, HU-018). */
