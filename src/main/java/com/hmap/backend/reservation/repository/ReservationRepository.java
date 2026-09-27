@@ -50,8 +50,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * Valida si ya existe una reserva pendiente para evitar duplicados por doble-clic.
      * Usado en la creación de reservas para prevenir timeouts que generen datos duplicados.
      */
-    boolean existsByUserIdAndRoomIdAndCheckInAndStatus(Long userId, Long roomId,
-                                                       LocalDate checkIn, ReservationStatus status);
+    @Query("""
+            select count(r) > 0 from Reservation r
+            where r.user.id = :userId
+              and r.room.id = :roomId
+              and r.checkIn = :checkIn
+              and r.status = :status
+            """)
+    boolean existsDuplicateReservation(@Param("userId") Long userId,
+                                       @Param("roomId") Long roomId,
+                                       @Param("checkIn") LocalDate checkIn,
+                                       @Param("status") ReservationStatus status);
 
     // === Panel de recepción (E3) ===
 

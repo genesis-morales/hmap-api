@@ -105,7 +105,7 @@ public class ReservationService {
         ensureRangeAvailable(room, request.checkIn(), request.checkOut(), null);
 
         // Prevenir duplicados por doble-clic o reintentos después de timeout
-        if (reservationRepository.existsByUserIdAndRoomIdAndCheckInAndStatus(
+        if (reservationRepository.existsDuplicateReservation(
                 user.getId(), room.getId(), request.checkIn(), INITIAL_STATUS)) {
             throw new ConflictException("Ya tienes una reserva pendiente para esta habitación en estas fechas");
         }
