@@ -73,7 +73,8 @@ public class SecurityConfig {
         // Permitir localhost (desarrollo), Vercel (producción) y Render
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:*",
-            "hmap-front.vercel.app",
+            "https://localhost:*",
+            "https://hmap-front.vercel.app",
             "https://hmap-api.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
