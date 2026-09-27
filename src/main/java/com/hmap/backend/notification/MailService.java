@@ -4,10 +4,15 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import com.hmap.backend.reservation.entity.Reservation;
 
 /**
  * Envío de correos transaccionales del sistema.
@@ -15,6 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailService {
 
+    private static final Logger log = LoggerFactory.getLogger(MailService.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final JavaMailSender mailSender;
@@ -49,6 +55,76 @@ public class MailService {
                 """.formatted(resetLink));
 
         mailSender.send(message);
+    }
+
+    /**
+     * Envía los detalles de la reserva recién creada (HU-035).
+     * Versión asíncrona: no bloquea la respuesta HTTP.
+     */
+    @Async
+    public void sendReservationConfirmationEmailAsync(Reservation reservation) {
+        var guest = reservation.getUser();
+        try {
+            sendReservationConfirmationEmail(
+                    guest.getEmail(),
+                    guest.getName(),
+                    "RSV-%06d".formatted(reservation.getId()),
+                    reservation.getRoom().getName(),
+                    reservation.getCheckIn(),
+                    reservation.getCheckOut(),
+                    reservation.getGuests(),
+                    reservation.getNights(),
+                    reservation.getTotal());
+        } catch (Exception e) {
+            log.warn("No se pudo enviar el correo de confirmación de la reserva {}: {}",
+                    reservation.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Envía los detalles de una reserva manual (HU-037).
+     * Versión asíncrona: no bloquea la respuesta HTTP.
+     */
+    @Async
+    public void sendManualReservationEmailAsync(Reservation reservation, String temporaryPassword) {
+        var guest = reservation.getUser();
+        try {
+            sendManualReservationEmail(
+                    guest.getEmail(),
+                    guest.getName(),
+                    "RSV-%06d".formatted(reservation.getId()),
+                    reservation.getRoom().getName(),
+                    reservation.getCheckIn(),
+                    reservation.getCheckOut(),
+                    reservation.getGuests(),
+                    reservation.getNights(),
+                    reservation.getTotal(),
+                    temporaryPassword);
+        } catch (Exception e) {
+            log.warn("No se pudo enviar el correo de la reserva manual {}: {}",
+                    reservation.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Notifica la cancelación de una reserva (HU-036).
+     * Versión asíncrona: no bloquea la respuesta HTTP.
+     */
+    @Async
+    public void sendReservationCancellationEmailAsync(Reservation reservation) {
+        var guest = reservation.getUser();
+        try {
+            sendReservationCancellationEmail(
+                    guest.getEmail(),
+                    guest.getName(),
+                    "RSV-%06d".formatted(reservation.getId()),
+                    reservation.getRoom().getName(),
+                    reservation.getCheckIn(),
+                    reservation.getCheckOut());
+        } catch (Exception e) {
+            log.warn("No se pudo enviar el correo de cancelación de la reserva {}: {}",
+                    reservation.getId(), e.getMessage());
+        }
     }
 
     /**
