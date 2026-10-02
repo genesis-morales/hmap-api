@@ -5,6 +5,8 @@ target/
 docs/
 tree.md
 .claude/
+DESPLIEGUE-NEON.md
+TAREAS-FE-V7.md
 
 ### Maven wrapper (se usa en local; requiere mvn instalado al clonar) ###
 .mvn/
