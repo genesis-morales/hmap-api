@@ -219,6 +219,7 @@ public class ReservationService {
         }
         reservation.setStatus(ReservationStatus.CONFIRMADA);
         reservationRepository.save(reservation);
+        mailService.sendReservationWelcomeEmailAsync(reservation);
         return toDto(reservation);
     }
 

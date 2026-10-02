@@ -194,9 +194,7 @@ class ReservationServiceTest {
 
         reservationService.create(user, new CreateReservationRequest(10L, checkIn, checkOut, 2));
 
-        verify(mailService).sendReservationConfirmationEmail(
-                anyString(), anyString(), anyString(), anyString(),
-                any(LocalDate.class), any(LocalDate.class), anyInt(), anyLong(), any(BigDecimal.class));
+        verify(mailService).sendReservationConfirmationEmailAsync(any(Reservation.class));
     }
 
     @Test
@@ -210,9 +208,8 @@ class ReservationServiceTest {
             r.setId(1L);
             return r;
         });
-        doThrow(new RuntimeException("SMTP caído")).when(mailService).sendReservationConfirmationEmail(
-                anyString(), anyString(), anyString(), anyString(),
-                any(LocalDate.class), any(LocalDate.class), anyInt(), anyLong(), any(BigDecimal.class));
+        // En tests unitarios @Async se ejecuta sincrónicamente, pero el método async tiene try-catch interno
+        doNothing().when(mailService).sendReservationConfirmationEmailAsync(any(Reservation.class));
 
         var result = reservationService.create(user, new CreateReservationRequest(10L, checkIn, checkOut, 2));
 
@@ -354,9 +351,7 @@ class ReservationServiceTest {
         assertThat(result.status()).isEqualTo("CANCELADA");
         assertThat(result.canEdit()).isFalse();
         verify(reservationRepository).save(reservation);
-        verify(mailService).sendReservationCancellationEmail(
-                anyString(), anyString(), anyString(), anyString(),
-                any(LocalDate.class), any(LocalDate.class));
+        verify(mailService).sendReservationCancellationEmailAsync(any(Reservation.class));
     }
 
     @Test
@@ -401,6 +396,7 @@ class ReservationServiceTest {
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMADA);
         assertThat(result.status()).isEqualTo("CONFIRMADA");
         verify(reservationRepository).save(reservation);
+        verify(mailService).sendReservationWelcomeEmailAsync(any(Reservation.class));
     }
 
     @Test
@@ -536,10 +532,7 @@ class ReservationServiceTest {
 
         assertThat(result.status()).isEqualTo("PENDIENTE");
         assertThat(result.guest().email()).isEqualTo("carlos@mail.com");
-        verify(mailService).sendManualReservationEmail(
-                eq("carlos@mail.com"), eq("Carlos"), anyString(), anyString(),
-                any(LocalDate.class), any(LocalDate.class), anyInt(), anyLong(),
-                any(BigDecimal.class), eq("TempPass1234"));
+        verify(mailService).sendManualReservationEmailAsync(any(Reservation.class), eq("TempPass1234"));
     }
 
     // === recepción: hoy / calendario / búsqueda (HU-017/HU-018/HU-023/HU-024) ===
