@@ -128,6 +128,30 @@ public class MailService {
     }
 
     /**
+     * Envía un correo de bienvenida cuando se confirma una reserva pendiente.
+     * Versión asíncrona: no bloquea la respuesta HTTP.
+     */
+    @Async
+    public void sendReservationWelcomeEmailAsync(Reservation reservation) {
+        var guest = reservation.getUser();
+        try {
+            sendReservationWelcomeEmail(
+                    guest.getEmail(),
+                    guest.getName(),
+                    "RSV-%06d".formatted(reservation.getId()),
+                    reservation.getRoom().getName(),
+                    reservation.getCheckIn(),
+                    reservation.getCheckOut(),
+                    reservation.getGuests(),
+                    reservation.getNights(),
+                    reservation.getTotal());
+        } catch (Exception e) {
+            log.warn("No se pudo enviar el correo de bienvenida de la reserva {}: {}",
+                    reservation.getId(), e.getMessage());
+        }
+    }
+
+    /**
      * Envía los detalles de la reserva recién creada (HU-035).
      */
     public void sendReservationConfirmationEmail(String to, String guestName, String code,
@@ -232,6 +256,46 @@ public class MailService {
                 Hotel Manuel Antonio Park
                 """.formatted(guestName, code, roomName,
                 DATE_FORMAT.format(checkIn), DATE_FORMAT.format(checkOut)));
+
+        mailSender.send(message);
+    }
+
+    /**
+     * Envía un correo de bienvenida cuando se confirma una reserva pendiente.
+     */
+    public void sendReservationWelcomeEmail(String to, String guestName, String code,
+                                            String roomName, LocalDate checkIn, LocalDate checkOut,
+                                            int guests, long nights, BigDecimal total) {
+        var message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("¡Bienvenido! Reserva confirmada %s - Hotel Manuel Antonio Park".formatted(code));
+        message.setText("""
+                Hola %s,
+
+                ¡Su reserva ha sido confirmada exitosamente!
+
+                El Hotel Manuel Antonio Park le da la bienvenida.
+
+                Estos son los detalles de su estancia:
+
+                Código de reserva: %s
+                Habitación: %s
+                Entrada: %s
+                Salida: %s
+                Huéspedes: %d
+                Noches: %d
+                Total: $%s USD
+
+                Si tiene alguna pregunta o necesita
+                asistencia adicional, no dude en contactarnos.
+
+
+                Saludos,
+                Hotel Manuel Antonio Park
+                """.formatted(guestName, code, roomName,
+                DATE_FORMAT.format(checkIn), DATE_FORMAT.format(checkOut),
+                guests, nights, total));
 
         mailSender.send(message);
     }
