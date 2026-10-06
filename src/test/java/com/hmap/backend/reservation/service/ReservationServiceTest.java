@@ -181,11 +181,30 @@ class ReservationServiceTest {
     }
 
     @Test
+    void create_reservaDuplicada_lanzaConflict() {
+        var checkIn = LocalDate.now().plusDays(7);
+        var checkOut = LocalDate.now().plusDays(10);
+        when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
+        when(reservationRepository.existsOverlapping(10L, checkIn, checkOut, RoomService.BLOCKING_STATUSES, null))
+                .thenReturn(false);
+        when(reservationRepository.existsDuplicateReservation(1L, 10L, checkIn, ReservationStatus.PENDIENTE))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> reservationService.create(user,
+                new CreateReservationRequest(10L, checkIn, checkOut, 2)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Ya tienes una reserva pendiente para esta habitación en estas fechas");
+
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
     void create_enviaCorreoDeConfirmacion() {
         var checkIn = LocalDate.now().plusDays(7);
         var checkOut = LocalDate.now().plusDays(10);
         when(roomRepository.findWithLockById(10L)).thenReturn(Optional.of(room));
         when(reservationRepository.existsOverlapping(anyLong(), any(), any(), any(), any())).thenReturn(false);
+        when(reservationRepository.existsDuplicateReservation(anyLong(), anyLong(), any(), any())).thenReturn(false);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> {
             Reservation r = inv.getArgument(0);
             r.setId(1L);
@@ -348,10 +367,26 @@ class ReservationServiceTest {
         var result = reservationService.cancel(user, 123L, null);
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELADA);
+        assertThat(reservation.getCancellationReason()).isNull();
         assertThat(result.status()).isEqualTo("CANCELADA");
         assertThat(result.canEdit()).isFalse();
         verify(reservationRepository).save(reservation);
         verify(mailService).sendReservationCancellationEmailAsync(any(Reservation.class));
+    }
+
+    @Test
+    void cancel_clienteConMotivo_guardaMotivoOpcional() {
+        var reservation = buildReservation(LocalDate.now().plusDays(10), LocalDate.now().plusDays(12),
+                ReservationStatus.PENDIENTE);
+        when(reservationRepository.findWithRoomById(123L)).thenReturn(Optional.of(reservation));
+
+        var result = reservationService.cancel(user, 123L,
+                new CancelReservationRequest("Cambié de planes"));
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELADA);
+        assertThat(reservation.getCancellationReason()).isEqualTo("Cambié de planes");
+        assertThat(result.status()).isEqualTo("CANCELADA");
+        verify(reservationRepository).save(reservation);
     }
 
     @Test
@@ -502,6 +537,7 @@ class ReservationServiceTest {
                 new CancelReservationRequest("No-show del huésped"));
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELADA);
+        assertThat(reservation.getCancellationReason()).isEqualTo("No-show del huésped");
         assertThat(result.status()).isEqualTo("CANCELADA");
         verify(reservationRepository).save(reservation);
     }

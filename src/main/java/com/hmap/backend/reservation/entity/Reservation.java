@@ -12,6 +12,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -35,7 +36,14 @@ import java.time.temporal.ChronoUnit;
  * snapshot del precio al momento de reservar; las noches se derivan.
  */
 @Entity
-@Table(name = "reservations")
+@Table(name = "reservations", indexes = {
+    @Index(name = "idx_reservation_availability",
+           columnList = "room_id, status, check_in, check_out"),
+    @Index(name = "idx_reservation_user_history",
+           columnList = "user_id, created_at"),
+    @Index(name = "idx_reservation_calendar",
+           columnList = "check_in, check_out, status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
